@@ -1,0 +1,47 @@
+# Ignore uploaded images
+uploaded_img/
+
+# Ignore environment files
+.env
+.env.local
+.env.*
+
+# Ignore config and secret keys
+config.php
+
+# Ignore vendor directory (if using Composer)
+vendor/
+
+# Ignore node modules (if using any frontend build tools)
+node_modules/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/editor settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore logs and cache
+*.log
+*.cache
+cache/
+logs/
+
+# Ignore compiled files
+*.class
+*.pyc
+*.o
+*.so
+
+# Ignore user uploads and backup files
+*.bak
+*.swp
+*.tmp
+
+# Ignore build/output directories (optional)
+dist/
+build/
