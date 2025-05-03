@@ -17,8 +17,6 @@ An online bookstore web application that allows customers to browse books, add t
 - **Book Management**: Complete CRUD operations (Create, Read, Update, Delete) for book inventory
 - **Order Processing**: View, manage, and update the status of customer orders
 - **User Management**: Admin access to user information and account management
-- **Message Center**: Respond to customer inquiries and messages
-- **Analytics Dashboard**: Monitor sales and website performance (if implemented)
 
 ## Technology Stack
 
