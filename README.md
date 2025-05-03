@@ -2,8 +2,6 @@
 
 An online bookstore web application that allows customers to browse books, add them to cart, and place orders. The platform includes a comprehensive admin panel for inventory management, order processing, and customer communication.
 
-![Bookstore Screenshot](https://github.com/param-chandarana/bookstore/raw/main/screenshots/homepage.png)
-
 ## Features
 
 ### Customer Features
