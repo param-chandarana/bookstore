@@ -13,7 +13,7 @@ if (isset($_POST['order_btn'])) {
    $number = $_POST['number'];
    $email = mysqli_real_escape_string($conn, $_POST['email']);
    $method = mysqli_real_escape_string($conn, $_POST['method']);
-   $address = mysqli_real_escape_string($conn, 'Flat No. ' . $_POST['flat'] . ', ' . $_POST['street'] . ', ' . $_POST['city'] . ', ' . $_POST['country'] . ' - ' . $_POST['pin_code']);
+   $address = mysqli_real_escape_string($conn, $_POST['flat'] . ', ' . $_POST['street'] . ', ' . $_POST['city'] . ', ' . $_POST['country'] . ' - ' . $_POST['pin_code']);
    $placed_on = date('d-M-Y');
 
    $cart_total = 0;
@@ -66,7 +66,7 @@ if (isset($_POST['order_btn'])) {
 
 <div class="heading">
    <h3>Checkout</h3>
-   <p><a href="home.php">Home</a> / Checkout</p>
+   <p><a href="index.php">Home</a> / Checkout</p>
 </div>
 
 <section class="display-order">
@@ -115,7 +115,7 @@ if (isset($_POST['order_btn'])) {
          </div>
          <div class="inputBox">
             <span>Address Line 01:</span>
-            <input type="number" min="0" name="flat" required placeholder="e.g., Flat No. 101">
+            <input type="text" name="flat" required placeholder="e.g., Flat No. 101">
          </div>
          <div class="inputBox">
             <span>Address Line 02:</span>

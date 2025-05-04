@@ -411,6 +411,8 @@ textarea {
 
 .products .box-container .box .image{
    height: 30rem;
+   max-width: 100%;
+   object-fit: cover;
 }
 
 .products .box-container .box .name{
