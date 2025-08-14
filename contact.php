@@ -10,19 +10,26 @@ if (!isset($user_id)) {
 }
 
 if (isset($_POST['send'])) {
-   $name = mysqli_real_escape_string($conn, $_POST['name']);
-   $email = mysqli_real_escape_string($conn, $_POST['email']);
+   $name = $_POST['name'];
+   $email = $_POST['email'];
    $number = $_POST['number'];
-   $msg = mysqli_real_escape_string($conn, $_POST['message']);
+   $msg = $_POST['message'];
 
-   $select_message = mysqli_query($conn, "SELECT * FROM `message` WHERE name = '$name' AND email = '$email' AND number = '$number' AND message = '$msg'") or die('Query failed');
+   $stmt_select = $conn->prepare("SELECT * FROM `message` WHERE name = ? AND email = ? AND number = ? AND message = ?");
+   $stmt_select->bind_param("ssss", $name, $email, $number, $msg);
+   $stmt_select->execute();
+   $select_message = $stmt_select->get_result();
 
-   if (mysqli_num_rows($select_message) > 0) {
+   if ($select_message->num_rows > 0) {
       $message[] = 'Message has already been sent!';
    } else {
-      mysqli_query($conn, "INSERT INTO `message` (user_id, name, email, number, message) VALUES ('$user_id', '$name', '$email', '$number', '$msg')") or die('Query failed');
+      $stmt_insert = $conn->prepare("INSERT INTO `message` (user_id, name, email, number, message) VALUES (?, ?, ?, ?, ?)");
+      $stmt_insert->bind_param("issss", $user_id, $name, $email, $number, $msg);
+      $stmt_insert->execute();
+      $stmt_insert->close();
       $message[] = 'Message sent successfully!';
    }
+   $stmt_select->close();
 }
 ?>
 

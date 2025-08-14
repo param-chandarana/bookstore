@@ -5,14 +5,17 @@ session_start();
 
 if(isset($_POST['submit'])){
 
-   $email = mysqli_real_escape_string($conn, $_POST['email']);
-   $pass = mysqli_real_escape_string($conn, md5($_POST['password']));
+   $email = $_POST['email'];
+   $pass = md5($_POST['password']);
 
-   $select_users = mysqli_query($conn, "SELECT * FROM `users` WHERE email = '$email' AND password = '$pass'") or die('query failed');
+   $stmt_select = $conn->prepare("SELECT * FROM `users` WHERE email = ? AND password = ?");
+   $stmt_select->bind_param("ss", $email, $pass);
+   $stmt_select->execute();
+   $select_users = $stmt_select->get_result();
 
-   if(mysqli_num_rows($select_users) > 0){
+   if($select_users->num_rows > 0){
 
-      $row = mysqli_fetch_assoc($select_users);
+      $row = $select_users->fetch_assoc();
 
       if($row['user_type'] == 'admin'){
 

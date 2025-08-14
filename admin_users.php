@@ -11,8 +11,11 @@ if(!isset($admin_id)){
 }
 
 if(isset($_GET['delete'])){
-   $delete_id = $_GET['delete'];
-   mysqli_query($conn, "DELETE FROM `users` WHERE id = '$delete_id'") or die('query failed');
+   $delete_id = intval($_GET['delete']);
+   $stmt = $conn->prepare("DELETE FROM `users` WHERE id = ?");
+   $stmt->bind_param("i", $delete_id);
+   $stmt->execute();
+   $stmt->close();
    header('location:admin_users.php');
 }
 
@@ -42,9 +45,12 @@ if(isset($_GET['delete'])){
    <h1 class="title"> User Accounts </h1>
 
    <div class="box-container">
-      <?php
-         $select_users = mysqli_query($conn, "SELECT * FROM `users`") or die('query failed');
-         while($fetch_users = mysqli_fetch_assoc($select_users)){
+   <?php
+      $stmt_select = $conn->prepare("SELECT * FROM `users`");
+      $stmt_select->execute();
+      $select_users = $stmt_select->get_result();
+      while($fetch_users = $select_users->fetch_assoc()){
+      $stmt_select->close();
       ?>
       <div class="box">
          <p> User ID: <span><?php echo $fetch_users['id']; ?></span> </p>
