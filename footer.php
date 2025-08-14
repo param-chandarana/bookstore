@@ -94,18 +94,32 @@
                   My Account
                </h3>
                <div class="space-y-3">
-                  <a href="login.php" class="block text-blue-100 hover:text-cream-300 transition-colors duration-300 hover:translate-x-1 transform">
-                     <i class="fas fa-sign-in-alt w-4 mr-2 text-cream-400"></i>Login
-                  </a>
-                  <a href="register.php" class="block text-blue-100 hover:text-cream-300 transition-colors duration-300 hover:translate-x-1 transform">
-                     <i class="fas fa-user-plus w-4 mr-2 text-cream-400"></i>Register
-                  </a>
-                  <a href="cart.php" class="block text-blue-100 hover:text-cream-300 transition-colors duration-300 hover:translate-x-1 transform">
-                     <i class="fas fa-shopping-cart w-4 mr-2 text-cream-400"></i>Cart
-                  </a>
-                  <a href="orders.php" class="block text-blue-100 hover:text-cream-300 transition-colors duration-300 hover:translate-x-1 transform">
-                     <i class="fas fa-box w-4 mr-2 text-cream-400"></i>Orders
-                  </a>
+                  <?php if (isset($_SESSION['user_name']) && !empty($_SESSION['user_name'])): ?>
+                     <!-- Logged in user links -->
+                     <a href="profile.php" class="block text-blue-100 hover:text-cream-300 transition-colors duration-300 hover:translate-x-1 transform">
+                        <i class="fas fa-user-circle w-4 mr-2 text-cream-400"></i>My Profile
+                     </a>
+                     <a href="cart.php" class="block text-blue-100 hover:text-cream-300 transition-colors duration-300 hover:translate-x-1 transform">
+                        <i class="fas fa-shopping-cart w-4 mr-2 text-cream-400"></i>Cart
+                     </a>
+                     <a href="orders.php" class="block text-blue-100 hover:text-cream-300 transition-colors duration-300 hover:translate-x-1 transform">
+                        <i class="fas fa-box w-4 mr-2 text-cream-400"></i>Orders
+                     </a>
+                     <a href="logout.php" class="block text-blue-100 hover:text-cream-300 transition-colors duration-300 hover:translate-x-1 transform">
+                        <i class="fas fa-sign-out-alt w-4 mr-2 text-cream-400"></i>Logout
+                     </a>
+                  <?php else: ?>
+                     <!-- Guest user links -->
+                     <a href="login.php" class="block text-blue-100 hover:text-cream-300 transition-colors duration-300 hover:translate-x-1 transform">
+                        <i class="fas fa-sign-in-alt w-4 mr-2 text-cream-400"></i>Login
+                     </a>
+                     <a href="register.php" class="block text-blue-100 hover:text-cream-300 transition-colors duration-300 hover:translate-x-1 transform">
+                        <i class="fas fa-user-plus w-4 mr-2 text-cream-400"></i>Register
+                     </a>
+                     <a href="cart.php" class="block text-blue-100 hover:text-cream-300 transition-colors duration-300 hover:translate-x-1 transform">
+                        <i class="fas fa-shopping-cart w-4 mr-2 text-cream-400"></i>Cart
+                     </a>
+                  <?php endif; ?>
                </div>
             </div>
 

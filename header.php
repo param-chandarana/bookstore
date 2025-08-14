@@ -101,7 +101,7 @@ if(isset($message)){
                   $stmt_cart->close();
                ?>
                <?php if($cart_rows_number > 0): ?>
-                  <span class="absolute -top-1 -right-1 bg-accent-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-medium animate-pulse">
+                  <span class="absolute -top-1 -right-1 bg-accent-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-medium">
                      <?php echo $cart_rows_number; ?>
                   </span>
                <?php endif; ?>
@@ -115,7 +115,7 @@ if(isset($message)){
                
                <!-- User Dropdown -->
                <div id="user-dropdown" class="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-sage-100 opacity-0 pointer-events-none transform translate-y-2 transition-all duration-300">
-                  <div class="p-4 border-b border-sage-100">
+                  <a href="profile.php" class="block p-4 border-b border-sage-100 hover:bg-sage-50 transition-colors">
                      <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
                            <i class="fas fa-user text-white"></i>
@@ -125,12 +125,8 @@ if(isset($message)){
                            <p class="text-sm text-sage-500"><?php echo $_SESSION['user_email'] ?? ''; ?></p>
                         </div>
                      </div>
-                  </div>
+                  </a>
                   <div class="p-2">
-                     <a href="orders.php" class="flex items-center space-x-3 px-3 py-2 text-sage-700 hover:bg-sage-50 rounded-lg transition-colors">
-                        <i class="fas fa-box text-primary-600"></i>
-                        <span>My Orders</span>
-                     </a>
                      <a href="logout.php" class="flex items-center space-x-3 px-3 py-2 text-accent-600 hover:bg-accent-50 rounded-lg transition-colors">
                         <i class="fas fa-sign-out-alt"></i>
                         <span>Logout</span>
@@ -207,6 +203,15 @@ if(isset($message)){
          <a href="search_page.php" class="flex items-center space-x-3 px-4 py-3 text-sage-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-all duration-300">
             <i class="fas fa-search w-5 text-center"></i>
             <span class="font-medium">Search Books</span>
+         </a>
+         <a href="cart.php" class="flex items-center space-x-3 px-4 py-3 text-sage-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-all duration-300 relative">
+            <i class="fas fa-shopping-cart w-5 text-center"></i>
+            <span class="font-medium">My Cart</span>
+            <?php if($cart_rows_number > 0): ?>
+               <span class="ml-auto bg-accent-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                  <?php echo $cart_rows_number; ?>
+               </span>
+            <?php endif; ?>
          </a>
          
          <!-- Mobile Logout -->
