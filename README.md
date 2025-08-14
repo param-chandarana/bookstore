@@ -146,25 +146,6 @@ A comprehensive, modern online bookstore web application with an elegant user in
 - **Error Handling**: User-friendly error messages and validation
 - **Success Feedback**: Clear confirmation messages and visual cues
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Tailwind CSS**: For the utility-first CSS framework
-- **Font Awesome**: For the comprehensive icon library
-- **Google Fonts**: For the beautiful typography
-- **PHP Community**: For the robust backend language
-
 ---
 
 <div align="center">
