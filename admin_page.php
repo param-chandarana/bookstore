@@ -42,13 +42,18 @@ if(!isset($admin_id)){
       <div class="box">
          <?php
             $total_pending = 0;
-            $select_pending = mysqli_query($conn, "SELECT total_price FROM `orders` WHERE payment_status = 'pending'") or die('query failed');
-            if(mysqli_num_rows($select_pending) > 0){
-               while($fetch_pending = mysqli_fetch_assoc($select_pending)){
+            $status_pending = 'pending';
+            $stmt_pending = $conn->prepare("SELECT total_price FROM `orders` WHERE payment_status = ?");
+            $stmt_pending->bind_param("s", $status_pending);
+            $stmt_pending->execute();
+            $select_pending = $stmt_pending->get_result();
+            if($select_pending->num_rows > 0){
+               while($fetch_pending = $select_pending->fetch_assoc()){
                   $total_price = $fetch_pending['total_price'];
                   $total_pending += $total_price;
-               };
-            };
+               }
+            $stmt_pending->close();
+            }
          ?>
          <h3>₹<?php echo $total_pending; ?></h3>
          <p>Pending Payments</p>

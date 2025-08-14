@@ -11,8 +11,11 @@ if(!isset($admin_id)){
 };
 
 if(isset($_GET['delete'])){
-   $delete_id = $_GET['delete'];
-   mysqli_query($conn, "DELETE FROM `message` WHERE id = '$delete_id'") or die('query failed');
+   $delete_id = intval($_GET['delete']);
+   $stmt = $conn->prepare("DELETE FROM `message` WHERE id = ?");
+   $stmt->bind_param("i", $delete_id);
+   $stmt->execute();
+   $stmt->close();
    header('location:admin_contacts.php');
 }
 
@@ -43,10 +46,12 @@ if(isset($_GET['delete'])){
 
    <div class="box-container">
    <?php
-      $select_message = mysqli_query($conn, "SELECT * FROM `message`") or die('query failed');
-      if(mysqli_num_rows($select_message) > 0){
-         while($fetch_message = mysqli_fetch_assoc($select_message)){
-      
+      $stmt_select = $conn->prepare("SELECT * FROM `message`");
+      $stmt_select->execute();
+      $select_message = $stmt_select->get_result();
+      if($select_message->num_rows > 0){
+         while($fetch_message = $select_message->fetch_assoc()){
+      $stmt_select->close();
    ?>
    <div class="box">
       <p> User ID: <span><?php echo $fetch_message['user_id']; ?></span> </p>

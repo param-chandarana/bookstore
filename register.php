@@ -4,25 +4,32 @@ include 'config.php';
 
 if(isset($_POST['submit'])){
 
-   $name = mysqli_real_escape_string($conn, $_POST['name']);
-   $email = mysqli_real_escape_string($conn, $_POST['email']);
-   $pass = mysqli_real_escape_string($conn, md5($_POST['password']));
-   $cpass = mysqli_real_escape_string($conn, md5($_POST['cpassword']));
+   $name = $_POST['name'];
+   $email = $_POST['email'];
+   $pass = md5($_POST['password']);
+   $cpass = md5($_POST['cpassword']);
    $user_type = $_POST['user_type'];
 
-   $select_users = mysqli_query($conn, "SELECT * FROM `users` WHERE email = '$email' AND password = '$pass'") or die('query failed');
+   $stmt_select = $conn->prepare("SELECT * FROM `users` WHERE email = ? AND password = ?");
+   $stmt_select->bind_param("ss", $email, $pass);
+   $stmt_select->execute();
+   $select_users = $stmt_select->get_result();
 
-   if(mysqli_num_rows($select_users) > 0){
+   if($select_users->num_rows > 0){
       $message[] = 'user already exist!';
    }else{
       if($pass != $cpass){
          $message[] = 'confirm password not matched!';
       }else{
-         mysqli_query($conn, "INSERT INTO `users`(name, email, password, user_type) VALUES('$name', '$email', '$cpass', '$user_type')") or die('query failed');
+         $stmt_insert = $conn->prepare("INSERT INTO `users`(name, email, password, user_type) VALUES(?, ?, ?, ?)");
+         $stmt_insert->bind_param("ssss", $name, $email, $cpass, $user_type);
+         $stmt_insert->execute();
+         $stmt_insert->close();
          $message[] = 'registered successfully!';
          header('location:login.php');
       }
    }
+   $stmt_select->close();
 
 }
 

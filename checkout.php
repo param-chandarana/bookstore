@@ -19,9 +19,12 @@ if (isset($_POST['order_btn'])) {
    $cart_total = 0;
    $cart_products = [];
 
-   $cart_query = mysqli_query($conn, "SELECT * FROM `cart` WHERE user_id = '$user_id'") or die('Query failed');
-   if (mysqli_num_rows($cart_query) > 0) {
-      while ($cart_item = mysqli_fetch_assoc($cart_query)) {
+   $stmt_cart = $conn->prepare("SELECT * FROM `cart` WHERE user_id = ?");
+   $stmt_cart->bind_param("i", $user_id);
+   $stmt_cart->execute();
+   $cart_query = $stmt_cart->get_result();
+   if ($cart_query->num_rows > 0) {
+      while ($cart_item = $cart_query->fetch_assoc()) {
          $cart_products[] = $cart_item['name'] . ' (' . $cart_item['quantity'] . ') ';
          $sub_total = ($cart_item['price'] * $cart_item['quantity']);
          $cart_total += $sub_total;
@@ -30,17 +33,26 @@ if (isset($_POST['order_btn'])) {
 
    $total_products = implode(', ', $cart_products);
 
-   $order_query = mysqli_query($conn, "SELECT * FROM `orders` WHERE name = '$name' AND number = '$number' AND email = '$email' AND method = '$method' AND address = '$address' AND total_products = '$total_products' AND total_price = '$cart_total'") or die('Query failed');
+   $stmt_order = $conn->prepare("SELECT * FROM `orders` WHERE name = ? AND number = ? AND email = ? AND method = ? AND address = ? AND total_products = ? AND total_price = ?");
+   $stmt_order->bind_param("ssssssi", $name, $number, $email, $method, $address, $total_products, $cart_total);
+   $stmt_order->execute();
+   $order_query = $stmt_order->get_result();
 
    if ($cart_total == 0) {
       $message[] = 'Your cart is empty.';
    } else {
-      if (mysqli_num_rows($order_query) > 0) {
+      if ($order_query->num_rows > 0) {
          $message[] = 'Order already placed!';
       } else {
-         mysqli_query($conn, "INSERT INTO `orders` (user_id, name, number, email, method, address, total_products, total_price, placed_on) VALUES ('$user_id', '$name', '$number', '$email', '$method', '$address', '$total_products', '$cart_total', '$placed_on')") or die('Query failed');
+         $stmt_insert = $conn->prepare("INSERT INTO `orders` (user_id, name, number, email, method, address, total_products, total_price, placed_on) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+         $stmt_insert->bind_param("issssssss", $user_id, $name, $number, $email, $method, $address, $total_products, $cart_total, $placed_on);
+         $stmt_insert->execute();
+         $stmt_insert->close();
          $message[] = 'Order placed successfully!';
-         mysqli_query($conn, "DELETE FROM `cart` WHERE user_id = '$user_id'") or die('Query failed');
+         $stmt_delete = $conn->prepare("DELETE FROM `cart` WHERE user_id = ?");
+         $stmt_delete->bind_param("i", $user_id);
+         $stmt_delete->execute();
+         $stmt_delete->close();
       }
    }
 }

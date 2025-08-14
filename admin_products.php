@@ -12,19 +12,26 @@ if(!isset($admin_id)){
 
 if(isset($_POST['add_product'])){
 
-   $name = mysqli_real_escape_string($conn, $_POST['name']);
+   $name = $_POST['name'];
    $price = $_POST['price'];
    $image = $_FILES['image']['name'];
    $image_size = $_FILES['image']['size'];
    $image_tmp_name = $_FILES['image']['tmp_name'];
    $image_folder = 'uploaded_img/'.$image;
 
-   $select_product_name = mysqli_query($conn, "SELECT name FROM `products` WHERE name = '$name'") or die('query failed');
+   $stmt_select = $conn->prepare("SELECT name FROM `products` WHERE name = ?");
+   $stmt_select->bind_param("s", $name);
+   $stmt_select->execute();
+   $select_product_name = $stmt_select->get_result();
 
-   if(mysqli_num_rows($select_product_name) > 0){
+   if($select_product_name->num_rows > 0){
       $message[] = 'product name already added';
    }else{
-      $add_product_query = mysqli_query($conn, "INSERT INTO `products`(name, price, image) VALUES('$name', '$price', '$image')") or die('query failed');
+      $stmt_insert = $conn->prepare("INSERT INTO `products`(name, price, image) VALUES(?, ?, ?)");
+      $stmt_insert->bind_param("sds", $name, $price, $image);
+      $stmt_insert->execute();
+      $add_product_query = $stmt_insert->affected_rows > 0;
+      $stmt_insert->close();
 
       if($add_product_query){
          if($image_size > 2000000){
@@ -37,14 +44,24 @@ if(isset($_POST['add_product'])){
          $message[] = 'product could not be added!';
       }
    }
+   $stmt_select->close();
 }
 
 if(isset($_GET['delete'])){
-   $delete_id = $_GET['delete'];
-   $delete_image_query = mysqli_query($conn, "SELECT image FROM `products` WHERE id = '$delete_id'") or die('query failed');
-   $fetch_delete_image = mysqli_fetch_assoc($delete_image_query);
-   unlink('uploaded_img/'.$fetch_delete_image['image']);
-   mysqli_query($conn, "DELETE FROM `products` WHERE id = '$delete_id'") or die('query failed');
+   $delete_id = intval($_GET['delete']);
+   $stmt_img = $conn->prepare("SELECT image FROM `products` WHERE id = ?");
+   $stmt_img->bind_param("i", $delete_id);
+   $stmt_img->execute();
+   $delete_image_query = $stmt_img->get_result();
+   $fetch_delete_image = $delete_image_query->fetch_assoc();
+   if ($fetch_delete_image) {
+      unlink('uploaded_img/'.$fetch_delete_image['image']);
+   }
+   $stmt_img->close();
+   $stmt_del = $conn->prepare("DELETE FROM `products` WHERE id = ?");
+   $stmt_del->bind_param("i", $delete_id);
+   $stmt_del->execute();
+   $stmt_del->close();
    header('location:admin_products.php');
 }
 

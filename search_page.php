@@ -17,14 +17,21 @@ if(isset($_POST['add_to_cart'])){
    $product_image = $_POST['product_image'];
    $product_quantity = $_POST['product_quantity'];
 
-   $check_cart_numbers = mysqli_query($conn, "SELECT * FROM `cart` WHERE name = '$product_name' AND user_id = '$user_id'") or die('query failed');
+   $stmt_check = $conn->prepare("SELECT * FROM `cart` WHERE name = ? AND user_id = ?");
+   $stmt_check->bind_param("si", $product_name, $user_id);
+   $stmt_check->execute();
+   $check_cart_numbers = $stmt_check->get_result();
 
-   if(mysqli_num_rows($check_cart_numbers) > 0){
+   if($check_cart_numbers->num_rows > 0){
       $message[] = 'Already added to cart!';
    }else{
-      mysqli_query($conn, "INSERT INTO `cart`(user_id, name, price, quantity, image) VALUES('$user_id', '$product_name', '$product_price', '$product_quantity', '$product_image')") or die('query failed');
+      $stmt_insert = $conn->prepare("INSERT INTO `cart`(user_id, name, price, quantity, image) VALUES(?, ?, ?, ?, ?)");
+      $stmt_insert->bind_param("isdis", $user_id, $product_name, $product_price, $product_quantity, $product_image);
+      $stmt_insert->execute();
+      $stmt_insert->close();
       $message[] = 'Product added to cart!';
    }
+   $stmt_check->close();
 
 };
 
