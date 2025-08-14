@@ -81,6 +81,8 @@ CREATE TABLE `products` (
   `id` int(100) NOT NULL,
   `name` varchar(100) NOT NULL,
   `author` varchar(100) NOT NULL,
+  `category` varchar(50) NOT NULL,
+  `description` text,
   `price` int(100) NOT NULL,
   `stock_quantity` int(100) NOT NULL DEFAULT 0,
   `image` varchar(100) NOT NULL

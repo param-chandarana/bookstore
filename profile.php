@@ -163,7 +163,7 @@ $stmt_user->close();
       }
    </style>
 </head>
-<body class="bg-cream-50 font-sans">
+<body class="bg-cream-50 font-sans min-h-screen flex flex-col">
 
 <?php 
 if ($is_admin) {
@@ -193,8 +193,10 @@ if ($is_admin) {
    </div>
 <?php endif; ?>
 
-<!-- Breadcrumb -->
-<section class="bg-white border-b border-sage-100 py-6">
+<!-- Main Content Wrapper -->
+<div class="flex-1">
+   <!-- Breadcrumb -->
+   <section class="bg-white border-b border-sage-100 py-6">
    <div class="container mx-auto px-4">
       <nav class="flex items-center space-x-2 text-sage-600">
          <a href="index.php" class="hover:text-primary-600 transition-colors">Home</a>
@@ -374,9 +376,14 @@ if ($is_admin) {
       </div>
    </div>
 </section>
+</div>
+<!-- End Main Content Wrapper -->
 
 <?php 
-if (!$is_admin) {
+// Show appropriate footer based on user type
+if ($is_admin) {
+   include 'admin_footer.php'; 
+} else {
    include 'footer.php'; 
 }
 ?>

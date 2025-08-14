@@ -218,7 +218,7 @@ if (isset($_POST['add_to_cart'])) {
       </div>
 
       <!-- Products Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-12">
          <?php  
             $select_products = mysqli_query($conn, "SELECT * FROM `products` LIMIT 6") or die('Query failed');
             if (mysqli_num_rows($select_products) > 0) {
@@ -226,7 +226,7 @@ if (isset($_POST['add_to_cart'])) {
          ?>
          <form action="" method="post" class="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-sage-100 hover:border-primary-200 hover:-translate-y-2">
             <!-- Product Image -->
-            <div class="relative overflow-hidden bg-gradient-to-br from-sage-50 to-cream-100 h-80">
+            <div class="relative overflow-hidden bg-gradient-to-br from-sage-50 to-cream-100 aspect-[3/4]">
                <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     src="uploaded_img/<?php echo $fetch_products['image']; ?>" 
                     alt="<?php echo htmlspecialchars($fetch_products['name']); ?>">
@@ -240,9 +240,22 @@ if (isset($_POST['add_to_cart'])) {
             
             <!-- Product Info -->
             <div class="p-6">
-               <h3 class="text-xl font-serif font-semibold text-sage-800 mb-3 line-clamp-2 group-hover:text-primary-700 transition-colors">
+               <h3 class="text-xl font-serif font-semibold text-sage-800 mb-2 line-clamp-2 group-hover:text-primary-700 transition-colors">
                   <?php echo htmlspecialchars($fetch_products['name']); ?>
                </h3>
+
+               <!-- Author -->
+               <p class="text-sage-600 text-sm font-medium mb-2 flex items-center">
+                  <i class="fas fa-user-edit mr-2 text-primary-500"></i>
+                  by <?php echo htmlspecialchars($fetch_products['author']); ?>
+               </p>
+
+               <!-- Category -->
+               <div class="mb-3">
+                  <span class="inline-block bg-primary-100 text-primary-700 px-2 py-1 rounded-full text-xs font-medium">
+                     <?php echo htmlspecialchars($fetch_products['category']); ?>
+                  </span>
+               </div>
                
                <!-- Quantity and Add to Cart -->
                <div class="flex items-center gap-4 mt-4">

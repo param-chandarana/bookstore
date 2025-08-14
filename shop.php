@@ -333,10 +333,17 @@ switch ($sort) {
                </h3>
                
                <!-- Author -->
-               <p class="text-sage-600 text-sm font-medium mb-3 flex items-center">
+               <p class="text-sage-600 text-sm font-medium mb-2 flex items-center">
                   <i class="fas fa-user-edit mr-2 text-primary-500"></i>
                   by <?php echo htmlspecialchars($fetch_products['author']); ?>
                </p>
+
+               <!-- Category -->
+               <div class="mb-3">
+                  <span class="inline-block bg-primary-100 text-primary-700 px-2 py-1 rounded-full text-xs font-medium">
+                     <?php echo htmlspecialchars($fetch_products['category']); ?>
+                  </span>
+               </div>
                
                <!-- Rating -->
                <div class="flex items-center gap-1 mb-3">
