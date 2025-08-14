@@ -1,5 +1,16 @@
 <?php
 include 'config.php';
+session_start();
+
+// Redirect if already logged in
+if (isset($_SESSION['user_id']) || isset($_SESSION['admin_id'])) {
+   if (isset($_SESSION['admin_id'])) {
+      header('location:admin_page.php');
+   } else {
+      header('location:index.php');
+   }
+   exit;
+}
 
 // Initialize message array
 $message = [];
