@@ -2,17 +2,23 @@
 if(isset($message)){
    foreach($message as $message){
       echo '
-      <div class="fixed top-4 right-4 z-50 bg-white border-l-4 border-primary-500 rounded-lg shadow-lg p-4 max-w-sm animate-slide-up">
+      <div class="fixed top-20 right-4 bg-white border-l-4 border-primary-500 rounded-lg shadow-lg p-4 max-w-sm animate-slide-up" style="z-index: 99999 !important; position: fixed !important;">
          <div class="flex items-center justify-between">
             <div class="flex items-center">
                <div class="w-2 h-2 bg-primary-500 rounded-full mr-3"></div>
-               <span class="text-sage-800 font-medium">'.$message.'</span>
+               <span class="text-sage-800 font-medium inline-block p-1">'.$message.'</span>
             </div>
             <button onclick="this.parentElement.parentElement.remove();" class="text-sage-400 hover:text-sage-600 transition-colors">
                <i class="fas fa-times text-sm"></i>
             </button>
          </div>
       </div>
+      <script>
+         setTimeout(() => {
+            const msgs = document.querySelectorAll(".fixed.top-20");
+            msgs.forEach(msg => msg.remove());
+         }, 4000);
+      </script>
       ';
    }
 }
@@ -27,7 +33,7 @@ if(isset($message)){
       <div class="bg-gradient-primary text-white py-2">
          <div class="container mx-auto px-4">
             <div class="flex items-center justify-center text-sm">
-               <span class="mr-2">🎉 Welcome to BookHaven!</span>
+               <span class="mr-2">Welcome to BookHaven!</span>
                <a href="login.php" class="hover:text-cream-200 transition-colors underline underline-offset-2">Login</a>
                <span class="mx-2">|</span>
                <a href="register.php" class="hover:text-cream-200 transition-colors underline underline-offset-2">Register</a>
@@ -48,7 +54,7 @@ if(isset($message)){
                <h1 class="text-lg sm:text-2xl font-serif font-bold text-sage-800 group-hover:text-primary-600 transition-colors">
                   Book<span class="text-primary-600">Haven</span>
                </h1>
-               <p class="hidden sm:block text-xs text-sage-500 -mt-1">Literary Adventures</p>
+               <p class="hidden sm:block text-xs text-sage-500 -mt-1">Literary Adventures Await</p>
             </div>
          </a>
 

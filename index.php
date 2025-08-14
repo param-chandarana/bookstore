@@ -321,7 +321,7 @@ if (isset($_POST['add_to_cart'])) {
                   At BookHaven, we believe that every book has the power to transform lives. Our mission is to connect passionate readers with carefully curated literary treasures that inspire, educate, and entertain.
                </p>
                <p class="text-lg text-sage-600 leading-relaxed">
-                  From contemporary bestsellers to timeless classics, we handpick each title to ensure you discover your next favorite read. Join our community of book lovers and embark on countless adventures through the pages of extraordinary stories.
+                  From contemporary bestsellers to timeless classics, we handpick each title to ensure you discover your next favourite read. Join our community of book lovers and embark on countless adventures through the pages of extraordinary stories.
                </p>
             </div>
             
@@ -370,7 +370,7 @@ if (isset($_POST['add_to_cart'])) {
          <!-- Content -->
          <div class="mb-12">
             <span class="inline-block px-4 py-2 bg-cream-400/20 text-cream-100 rounded-full text-sm font-medium mb-6 backdrop-blur-sm">
-               📞 Get in Touch
+               Get in Touch
             </span>
             <h2 class="text-4xl lg:text-5xl font-serif font-bold text-white mb-6">
                Have Questions About Our Books?

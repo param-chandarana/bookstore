@@ -80,7 +80,9 @@ CREATE TABLE `orders` (
 CREATE TABLE `products` (
   `id` int(100) NOT NULL,
   `name` varchar(100) NOT NULL,
+  `author` varchar(100) NOT NULL,
   `price` int(100) NOT NULL,
+  `stock_quantity` int(100) NOT NULL DEFAULT 0,
   `image` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

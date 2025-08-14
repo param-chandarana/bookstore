@@ -24,7 +24,7 @@
                   </div>
                </div>
                <p class="text-blue-100 leading-relaxed mb-6">
-                  Discover your next favorite book with our carefully curated collection. From timeless classics to contemporary bestsellers, we bring literary treasures to passionate readers worldwide.
+                  Discover your next favourite book with our carefully curated collection. From timeless classics to contemporary bestsellers, we bring literary treasures to passionate readers worldwide.
                </p>
                
                <!-- Social Media -->
@@ -121,10 +121,6 @@
                      <span>+91 9876543210</span>
                   </div>
                   <div class="flex items-center text-blue-100">
-                     <i class="fas fa-phone w-4 mr-3 text-cream-400"></i>
-                     <span>+91 8765432109</span>
-                  </div>
-                  <div class="flex items-center text-blue-100">
                      <i class="fas fa-envelope w-4 mr-3 text-cream-400"></i>
                      <span>hello@bookhaven.com</span>
                   </div>
@@ -149,10 +145,6 @@
                   <div class="text-blue-100">
                      <div class="font-medium text-cream-300">Saturday</div>
                      <div class="text-sm">10:00 AM - 6:00 PM</div>
-                  </div>
-                  <div class="text-blue-100">
-                     <div class="font-medium text-cream-300">Sunday</div>
-                     <div class="text-sm">11:00 AM - 5:00 PM</div>
                   </div>
                </div>
             </div>

@@ -470,7 +470,7 @@ $user_id = $_SESSION['user_id'];
          <span class="block">Literary Adventure?</span>
       </h2>
       <p class="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-         Join thousands of readers who trust BookHaven to deliver their next favorite book right to their doorstep.
+         Join thousands of readers who trust BookHaven to deliver their next favourite book right to their doorstep.
       </p>
       
       <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">

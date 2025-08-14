@@ -9,6 +9,9 @@ if (!isset($user_id)) {
    exit;
 }
 
+// Initialize message array
+$message = [];
+
 if (isset($_POST['add_to_cart'])) {
    $product_name = $_POST['product_name'];
    $product_price = $_POST['product_price'];
@@ -44,7 +47,7 @@ $types = '';
 
 // Add search functionality
 if (!empty($search)) {
-   $query .= " AND (name LIKE ? OR description LIKE ?)";
+   $query .= " AND (name LIKE ? OR author LIKE ?)";
    $searchParam = '%' . $search . '%';
    $params[] = $searchParam;
    $params[] = $searchParam;
@@ -87,7 +90,7 @@ switch ($sort) {
    <meta charset="UTF-8">
    <meta http-equiv="X-UA-Compatible" content="IE=edge">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Shop - BookHaven | Discover Your Next Favorite Book</title>
+   <title>Shop - BookHaven | Discover Your Next Favourite Book</title>
 
    <!-- Tailwind CSS -->
    <script src="https://cdn.tailwindcss.com"></script>
@@ -124,7 +127,6 @@ switch ($sort) {
                   'fade-in': 'fadeIn 0.8s ease-in-out',
                   'slide-up': 'slideUp 0.6s ease-out',
                   'float': 'float 6s ease-in-out infinite',
-                  'pulse-slow': 'pulse 3s ease-in-out infinite',
                },
                backgroundImage: {
                   'gradient-primary': 'linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%)',
@@ -149,21 +151,6 @@ switch ($sort) {
          33% { transform: translateY(-20px) rotate(1deg); }
          66% { transform: translateY(-10px) rotate(-1deg); }
       }
-      
-      /* Custom scrollbar */
-      ::-webkit-scrollbar {
-         width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-         background: #f1f5f9;
-      }
-      ::-webkit-scrollbar-thumb {
-         background: #0ea5e9;
-         border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-         background: #0284c7;
-      }
    </style>
 </head>
 <body class="bg-cream-50 font-sans">
@@ -171,10 +158,10 @@ switch ($sort) {
 <?php include 'header.php'; ?>
 
 <!-- Success/Error Messages -->
-<?php if (isset($message)): ?>
-   <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 space-y-2">
+<?php if (isset($message) && is_array($message) && !empty($message)): ?>
+   <div class="fixed top-24 left-1/2 transform -translate-x-1/2 space-y-2" style="z-index: 99999 !important; position: fixed !important;">
       <?php foreach ($message as $msg): ?>
-         <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-slide-up">
+         <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 pointer-events-auto">
             <i class="fas fa-check-circle"></i>
             <span><?php echo $msg; ?></span>
             <button onclick="this.parentElement.remove()" class="ml-4 text-white hover:text-green-200">
@@ -225,7 +212,7 @@ switch ($sort) {
                   <input type="text" 
                          name="search"
                          value="<?php echo htmlspecialchars($search); ?>"
-                         placeholder="Search for books, authors, genres..." 
+                         placeholder="Search for books or authors..." 
                          class="w-full px-6 py-4 pr-14 rounded-full text-sage-800 placeholder-sage-500 focus:outline-none focus:ring-4 focus:ring-cream-300/50 shadow-2xl">
                   <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary-500 text-white p-3 rounded-full hover:bg-primary-600 transition-colors">
                      <i class="fas fa-search"></i>
@@ -245,7 +232,7 @@ switch ($sort) {
    </div>
 </section>
 
-<<!-- Products Section -->
+<!-- Products Section -->
 <section class="py-20 bg-white">
    <div class="container mx-auto px-4">
       <!-- Section Header -->
@@ -337,13 +324,6 @@ switch ($sort) {
                
                <!-- Overlay -->
                <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-               
-               <!-- Sale Badge -->
-               <div class="absolute top-4 left-4">
-                  <span class="px-3 py-1 bg-accent-500 text-white text-xs font-bold rounded-full shadow-lg">
-                     NEW
-                  </span>
-               </div>
             </div>
             
             <!-- Product Info -->
@@ -351,6 +331,12 @@ switch ($sort) {
                <h3 class="font-serif font-bold text-lg text-sage-800 mb-2 group-hover:text-primary-600 transition-colors leading-tight">
                   <?php echo $fetch_products['name']; ?>
                </h3>
+               
+               <!-- Author -->
+               <p class="text-sage-600 text-sm font-medium mb-3 flex items-center">
+                  <i class="fas fa-user-edit mr-2 text-primary-500"></i>
+                  by <?php echo htmlspecialchars($fetch_products['author']); ?>
+               </p>
                
                <!-- Rating -->
                <div class="flex items-center gap-1 mb-3">
@@ -366,11 +352,7 @@ switch ($sort) {
                
                <!-- Price -->
                <div class="flex items-center justify-between mb-4">
-                  <div class="flex items-center gap-2">
                      <span class="text-2xl font-bold text-primary-600">₹<?php echo $fetch_products['price']; ?></span>
-                     <span class="text-sm text-sage-400 line-through">₹<?php echo $fetch_products['price'] + 100; ?></span>
-                  </div>
-                  <span class="text-sm text-green-600 font-medium">Save 20%</span>
                </div>
                
                <!-- Quantity & Add to Cart -->
@@ -441,42 +423,6 @@ switch ($sort) {
                echo '</div>';
             }
          ?>
-      </div>
-   </div>
-</section>
-
-<!-- Newsletter Section -->
-<section class="py-20 bg-gradient-primary relative overflow-hidden">
-   <!-- Background Pattern -->
-   <div class="absolute inset-0 opacity-10">
-      <div class="absolute top-10 left-10 w-32 h-32 border-2 border-white rounded-full animate-float"></div>
-      <div class="absolute top-32 right-20 w-24 h-24 border-2 border-white rounded-full animate-float" style="animation-delay: -2s;"></div>
-      <div class="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-white rounded-full animate-float" style="animation-delay: -4s;"></div>
-      <div class="absolute bottom-32 right-1/3 w-20 h-20 border-2 border-white rounded-full animate-float" style="animation-delay: -1s;"></div>
-   </div>
-
-   <div class="container mx-auto px-4 text-center relative z-10">
-      <div class="max-w-3xl mx-auto">
-         <h2 class="text-4xl lg:text-5xl font-serif font-bold text-white mb-6">
-            Stay Updated with
-            <span class="block">New Arrivals & Exclusive Offers</span>
-         </h2>
-         <p class="text-xl text-blue-100 mb-10">
-            Be the first to discover new releases, author spotlights, and special promotions tailored just for book lovers.
-         </p>
-         
-         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-lg mx-auto">
-            <input type="email" 
-                   placeholder="Enter your email address" 
-                   class="flex-1 px-6 py-4 rounded-full text-sage-800 placeholder-sage-500 focus:outline-none focus:ring-4 focus:ring-cream-300/50 shadow-lg">
-            <button class="px-8 py-4 bg-white text-primary-600 font-bold rounded-full hover:bg-cream-100 transition-all duration-300 transform hover:scale-105 shadow-lg whitespace-nowrap">
-               Subscribe Now
-            </button>
-         </div>
-         
-         <div class="mt-8 text-blue-100 text-sm">
-            <p>📚 Weekly book recommendations • 🎉 Exclusive member discounts • 📖 Author interviews & events</p>
-         </div>
       </div>
    </div>
 </section>
