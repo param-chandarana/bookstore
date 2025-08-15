@@ -18,23 +18,27 @@ $message = [];
 if (isset($_POST['submit'])) {
    $name = $_POST['name'];
    $email = $_POST['email'];
-   $pass = md5($_POST['password']);
-   $cpass = md5($_POST['cpassword']);
+   $pass = $_POST['password'];
+   $cpass = $_POST['cpassword'];
    $user_type = $_POST['user_type'];
 
-   $stmt_select = $conn->prepare("SELECT * FROM `users` WHERE email = ?");
-   $stmt_select->bind_param("s", $email);
-   $stmt_select->execute();
-   $select_users = $stmt_select->get_result();
-
-   if ($select_users->num_rows > 0) {
-      $message[] = 'User already exists with this email!';
+   // Validate password match
+   if ($pass !== $cpass) {
+      $message[] = 'Confirm password does not match!';
    } else {
-      if ($pass != $cpass) {
-         $message[] = 'Confirm password does not match!';
+      // Hash the password securely
+      $hashed_password = password_hash($pass, PASSWORD_DEFAULT);
+
+      $stmt_select = $conn->prepare("SELECT * FROM `users` WHERE email = ?");
+      $stmt_select->bind_param("s", $email);
+      $stmt_select->execute();
+      $select_users = $stmt_select->get_result();
+
+      if ($select_users->num_rows > 0) {
+         $message[] = 'User already exists with this email!';
       } else {
          $stmt_insert = $conn->prepare("INSERT INTO `users`(name, email, password, user_type) VALUES(?, ?, ?, ?)");
-         $stmt_insert->bind_param("ssss", $name, $email, $cpass, $user_type);
+         $stmt_insert->bind_param("ssss", $name, $email, $hashed_password, $user_type);
          $stmt_insert->execute();
          $stmt_insert->close();
          $message[] = 'Registered successfully!';

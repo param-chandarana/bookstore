@@ -60,24 +60,27 @@ if (isset($_POST['update_profile'])) {
 
 // Handle password change
 if (isset($_POST['change_password'])) {
-   $current_password = md5($_POST['current_password']);
+   $current_password = $_POST['current_password'];
    $new_password = $_POST['new_password'];
    $confirm_password = $_POST['confirm_password'];
 
-   // Verify current password
-   $stmt_verify = $conn->prepare("SELECT * FROM `users` WHERE id = ? AND password = ?");
-   $stmt_verify->bind_param("is", $user_id, $current_password);
-   $stmt_verify->execute();
-   $verify_result = $stmt_verify->get_result();
+   // Get current user data to verify password
+   $stmt_user = $conn->prepare("SELECT password FROM `users` WHERE id = ?");
+   $stmt_user->bind_param("i", $user_id);
+   $stmt_user->execute();
+   $user_result = $stmt_user->get_result();
+   $user_data = $user_result->fetch_assoc();
 
-   if ($verify_result->num_rows == 0) {
+   // Verify current password using password_verify()
+   if (!password_verify($current_password, $user_data['password'])) {
       $message[] = 'Current password is incorrect!';
    } elseif ($new_password !== $confirm_password) {
       $message[] = 'New passwords do not match!';
    } elseif (strlen($new_password) < 6) {
       $message[] = 'New password must be at least 6 characters long!';
    } else {
-      $hashed_new_password = md5($new_password);
+      // Hash new password securely
+      $hashed_new_password = password_hash($new_password, PASSWORD_DEFAULT);
       $stmt_password = $conn->prepare("UPDATE `users` SET password = ? WHERE id = ?");
       $stmt_password->bind_param("si", $hashed_new_password, $user_id);
       
@@ -88,7 +91,7 @@ if (isset($_POST['change_password'])) {
       }
       $stmt_password->close();
    }
-   $stmt_verify->close();
+   $stmt_user->close();
 }
 
 // Fetch current user data
