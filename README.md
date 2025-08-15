@@ -83,7 +83,6 @@ A comprehensive, modern online bookstore web application with an elegant user in
 - **Input Sanitization**: HTML escaping and data validation
 - **Access Control**: Role-based permissions for admin functions
 - **File Upload Security**: Secure image handling with validation
-- **CSRF Protection**: Form token validation for sensitive operations
 
 ## 📦 Installation & Setup
 

@@ -1,5 +1,7 @@
 <?php
 include 'config.php';
+include 'input_sanitization.php';
+include 'error_handling.php';
 session_start();
 
 // Redirect if already logged in
@@ -16,34 +18,62 @@ if (isset($_SESSION['user_id']) || isset($_SESSION['admin_id'])) {
 $message = [];
 
 if (isset($_POST['submit'])) {
-   $email = $_POST['email'];
-   $pass = md5($_POST['password']);
-
-   $stmt_select = $conn->prepare("SELECT * FROM `users` WHERE email = ? AND password = ?");
-   $stmt_select->bind_param("ss", $email, $pass);
-   $stmt_select->execute();
+   // Define validation rules
+   $validation_rules = [
+      'email' => [
+         'type' => 'email',
+         'required' => true
+      ],
+      'password' => [
+         'type' => 'string',
+         'required' => true,
+         'max_length' => 128
+      ]
+   ];
+   
+   // Validate and sanitize inputs
+   $validation_result = validateInputs($_POST, $validation_rules);
+   
+   if (!$validation_result['valid']) {
+      foreach ($validation_result['errors'] as $error) {
+         $message[] = $error;
+      }
+   } else {
+      $email = $validation_result['data']['email'];
+      $pass = $_POST['password']; // Keep original for password verification
+      
+      // First get user by email only
+      $stmt_select = $conn->prepare("SELECT * FROM `users` WHERE email = ?");
+      $stmt_select->bind_param("s", $email);
+      $stmt_select->execute();
    $select_users = $stmt_select->get_result();
 
    if ($select_users->num_rows > 0) {
       $row = $select_users->fetch_assoc();
-
-      if ($row['user_type'] == 'admin') {
-         $_SESSION['admin_name'] = $row['name'];
-         $_SESSION['admin_email'] = $row['email'];
-         $_SESSION['admin_id'] = $row['id'];
-         header('location:admin_page.php');
-         exit;
-      } elseif ($row['user_type'] == 'user') {
-         $_SESSION['user_name'] = $row['name'];
-         $_SESSION['user_email'] = $row['email'];
-         $_SESSION['user_id'] = $row['id'];
-         header('location:index.php');
-         exit;
+      
+      // Verify password using password_verify()
+      if (password_verify($pass, $row['password'])) {
+         if ($row['user_type'] == 'admin') {
+            $_SESSION['admin_name'] = $row['name'];
+            $_SESSION['admin_email'] = $row['email'];
+            $_SESSION['admin_id'] = $row['id'];
+            header('location:admin_page.php');
+            exit;
+         } elseif ($row['user_type'] == 'user') {
+            $_SESSION['user_name'] = $row['name'];
+            $_SESSION['user_email'] = $row['email'];
+            $_SESSION['user_id'] = $row['id'];
+            header('location:index.php');
+            exit;
+         }
+      } else {
+         $message[] = 'Incorrect email or password!';
       }
    } else {
       $message[] = 'Incorrect email or password!';
    }
    $stmt_select->close();
+   }
 }
 ?>
 

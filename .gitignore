@@ -1,13 +1,16 @@
 # Ignore uploaded images
 uploaded_img/
 
-# Ignore environment files
+# Ignore environment files (but track .env.example)
 .env
 .env.local
 .env.*
+!.env.example
 
-# Ignore config and secret keys
-config.php
+# Ignore database backups and SQL dumps
+*.sql
+*.backup
+*.dump
 
 # Ignore vendor directory (if using Composer)
 vendor/
