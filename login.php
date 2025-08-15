@@ -1,5 +1,6 @@
 <?php
 include 'config.php';
+include 'input_sanitization.php';
 session_start();
 
 // Redirect if already logged in
@@ -16,13 +17,34 @@ if (isset($_SESSION['user_id']) || isset($_SESSION['admin_id'])) {
 $message = [];
 
 if (isset($_POST['submit'])) {
-   $email = $_POST['email'];
-   $pass = $_POST['password'];
-
-   // First get user by email only
-   $stmt_select = $conn->prepare("SELECT * FROM `users` WHERE email = ?");
-   $stmt_select->bind_param("s", $email);
-   $stmt_select->execute();
+   // Define validation rules
+   $validation_rules = [
+      'email' => [
+         'type' => 'email',
+         'required' => true
+      ],
+      'password' => [
+         'type' => 'string',
+         'required' => true,
+         'max_length' => 128
+      ]
+   ];
+   
+   // Validate and sanitize inputs
+   $validation_result = validateInputs($_POST, $validation_rules);
+   
+   if (!$validation_result['valid']) {
+      foreach ($validation_result['errors'] as $error) {
+         $message[] = $error;
+      }
+   } else {
+      $email = $validation_result['data']['email'];
+      $pass = $_POST['password']; // Keep original for password verification
+      
+      // First get user by email only
+      $stmt_select = $conn->prepare("SELECT * FROM `users` WHERE email = ?");
+      $stmt_select->bind_param("s", $email);
+      $stmt_select->execute();
    $select_users = $stmt_select->get_result();
 
    if ($select_users->num_rows > 0) {
@@ -50,6 +72,7 @@ if (isset($_POST['submit'])) {
       $message[] = 'Incorrect email or password!';
    }
    $stmt_select->close();
+   }
 }
 ?>
 

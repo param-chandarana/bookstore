@@ -1,6 +1,7 @@
 <?php
 
 include 'config.php';
+include 'input_sanitization.php';
 
 session_start();
 
@@ -8,16 +9,62 @@ $admin_id = $_SESSION['admin_id'];
 
 if(!isset($admin_id)){
    header('location:login.php');
-};
+   exit;
+}
 
 if(isset($_POST['add_product'])){
 
-   $name = $_POST['name'];
-   $author = $_POST['author'];
-   $category = $_POST['category'];
-   $description = $_POST['description'];
-   $price = $_POST['price'];
-   $stock_quantity = $_POST['stock_quantity'];
+   // Define validation rules for product
+   $validation_rules = [
+      'name' => [
+         'type' => 'string',
+         'required' => true,
+         'max_length' => 255
+      ],
+      'author' => [
+         'type' => 'string',
+         'required' => true,
+         'max_length' => 255
+      ],
+      'category' => [
+         'type' => 'string',
+         'required' => true,
+         'max_length' => 100
+      ],
+      'description' => [
+         'type' => 'string',
+         'required' => false,
+         'max_length' => 1000
+      ],
+      'price' => [
+         'type' => 'number',
+         'required' => true,
+         'decimal' => true,
+         'min' => 0,
+         'max' => 999999
+      ],
+      'stock_quantity' => [
+         'type' => 'number',
+         'required' => true,
+         'min' => 0,
+         'max' => 999999
+      ]
+   ];
+   
+   // Validate and sanitize inputs
+   $validation_result = validateInputs($_POST, $validation_rules);
+   
+   if (!$validation_result['valid']) {
+      foreach ($validation_result['errors'] as $error) {
+         $message[] = $error;
+      }
+   } else {
+      $name = $validation_result['data']['name'];
+      $author = $validation_result['data']['author'];
+      $category = $validation_result['data']['category'];
+      $description = $validation_result['data']['description'];
+      $price = $validation_result['data']['price'];
+      $stock_quantity = $validation_result['data']['stock_quantity'];
 
    // Secure file upload validation
    $image_name = $_FILES['image']['name'];
@@ -92,6 +139,7 @@ if(isset($_POST['add_product'])){
             $stmt_select->close();
          }
       }
+   }
    }
 }
 
