@@ -1,12 +1,17 @@
 <?php
 include 'config.php';
+include 'error_handling.php';
 session_start();
 
 $user_id = $_SESSION['user_id'];
 
 if (!isset($user_id)) {
    header('location:login.php');
+   exit;
 }
+
+// Initialize message array
+$message = [];
 
 if (isset($_POST['order_btn'])) {
    $name = $_POST['name'];
@@ -250,11 +255,11 @@ if (isset($_POST['order_btn'])) {
                      <select name="method" required
                              class="w-full px-4 py-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                         <option value="">Select payment method</option>
-                        <option value="cash on delivery">Cash on Delivery</option>
-                        <option value="credit card">Credit Card</option>
-                        <option value="debit card">Debit Card</option>
+                        <option value="Cash on Delivery">Cash on Delivery</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
                         <option value="UPI">UPI</option>
-                        <option value="netbanking">Netbanking</option>
+                        <option value="Netbanking">Netbanking</option>
                      </select>
                   </div>
 

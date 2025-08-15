@@ -1,5 +1,7 @@
 <?php
 include 'config.php';
+include 'input_sanitization.php';
+include 'error_handling.php';
 session_start();
 
 // Redirect if already logged in
@@ -16,33 +18,78 @@ if (isset($_SESSION['user_id']) || isset($_SESSION['admin_id'])) {
 $message = [];
 
 if (isset($_POST['submit'])) {
-   $name = $_POST['name'];
-   $email = $_POST['email'];
-   $pass = md5($_POST['password']);
-   $cpass = md5($_POST['cpassword']);
-   $user_type = $_POST['user_type'];
-
-   $stmt_select = $conn->prepare("SELECT * FROM `users` WHERE email = ?");
-   $stmt_select->bind_param("s", $email);
-   $stmt_select->execute();
-   $select_users = $stmt_select->get_result();
-
-   if ($select_users->num_rows > 0) {
-      $message[] = 'User already exists with this email!';
+   // Define validation rules
+   $validation_rules = [
+      'name' => [
+         'type' => 'string',
+         'required' => true,
+         'max_length' => 100
+      ],
+      'email' => [
+         'type' => 'email',
+         'required' => true
+      ],
+      'password' => [
+         'type' => 'password',
+         'required' => true,
+         'min_length' => 8
+      ],
+      'cpassword' => [
+         'type' => 'string',
+         'required' => true
+      ],
+      'user_type' => [
+         'type' => 'string',
+         'required' => true
+      ]
+   ];
+   
+   // Validate and sanitize inputs
+   $validation_result = validateInputs($_POST, $validation_rules);
+   
+   if (!$validation_result['valid']) {
+      // Add validation errors to messages
+      foreach ($validation_result['errors'] as $error) {
+         $message[] = $error;
+      }
    } else {
-      if ($pass != $cpass) {
+      $name = $validation_result['data']['name'];
+      $email = $validation_result['data']['email'];
+      $pass = $validation_result['data']['password'];
+      $cpass = $_POST['cpassword']; // For comparison only
+      $user_type = $validation_result['data']['user_type'];
+      
+      // Validate user type (whitelist)
+      if (!in_array($user_type, ['admin', 'user'])) {
+         $message[] = 'Invalid user type selected!';
+      }
+      
+      // Validate password match
+      elseif ($pass !== $cpass) {
          $message[] = 'Confirm password does not match!';
       } else {
+         // Hash the password securely
+         $hashed_password = password_hash($pass, PASSWORD_DEFAULT);
+
+         $stmt_select = $conn->prepare("SELECT * FROM `users` WHERE email = ?");
+         $stmt_select->bind_param("s", $email);
+         $stmt_select->execute();
+         $select_users = $stmt_select->get_result();
+
+      if ($select_users->num_rows > 0) {
+         $message[] = 'User already exists with this email!';
+      } else {
          $stmt_insert = $conn->prepare("INSERT INTO `users`(name, email, password, user_type) VALUES(?, ?, ?, ?)");
-         $stmt_insert->bind_param("ssss", $name, $email, $cpass, $user_type);
+         $stmt_insert->bind_param("ssss", $name, $email, $hashed_password, $user_type);
          $stmt_insert->execute();
          $stmt_insert->close();
          $message[] = 'Registered successfully!';
          header('location:login.php');
          exit;
       }
+      }
+      $stmt_select->close();
    }
-   $stmt_select->close();
 }
 ?>
 

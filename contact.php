@@ -1,5 +1,7 @@
 <?php
 include 'config.php';
+include 'input_sanitization.php';
+include 'error_handling.php';
 session_start();
 
 $user_id = $_SESSION['user_id'];
@@ -9,27 +11,71 @@ if (!isset($user_id)) {
    exit;
 }
 
+// Initialize message array
+$message = [];
+
 if (isset($_POST['send'])) {
-   $name = $_POST['name'];
-   $email = $_POST['email'];
-   $number = $_POST['number'];
-   $msg = $_POST['message'];
-
-   $stmt_select = $conn->prepare("SELECT * FROM `message` WHERE name = ? AND email = ? AND number = ? AND message = ?");
-   $stmt_select->bind_param("ssss", $name, $email, $number, $msg);
-   $stmt_select->execute();
-   $select_message = $stmt_select->get_result();
-
-   if ($select_message->num_rows > 0) {
-      $message[] = 'Message has already been sent!';
+   // Define validation rules
+   $validation_rules = [
+      'name' => [
+         'type' => 'string',
+         'required' => true,
+         'max_length' => 100
+      ],
+      'email' => [
+         'type' => 'email',
+         'required' => true
+      ],
+      'number' => [
+         'type' => 'phone',
+         'required' => true
+      ],
+      'message' => [
+         'type' => 'string',
+         'required' => true,
+         'max_length' => 1000
+      ]
+   ];
+   
+   // Validate and sanitize inputs
+   $validation_result = validateInputs($_POST, $validation_rules);
+   
+   if (!$validation_result['valid']) {
+      // Ensure errors is an array before foreach
+      if (isset($validation_result['errors']) && is_array($validation_result['errors'])) {
+         foreach ($validation_result['errors'] as $error) {
+            $message[] = $error;
+         }
+      } else {
+         $message[] = 'Validation failed. Please check your input.';
+      }
    } else {
-      $stmt_insert = $conn->prepare("INSERT INTO `message` (user_id, name, email, number, message) VALUES (?, ?, ?, ?, ?)");
-      $stmt_insert->bind_param("issss", $user_id, $name, $email, $number, $msg);
-      $stmt_insert->execute();
-      $stmt_insert->close();
-      $message[] = 'Message sent successfully!';
+      $name = $validation_result['data']['name'];
+      $email = $validation_result['data']['email'];
+      $number = $validation_result['data']['number'];
+      $msg = $validation_result['data']['message'];
+
+      $stmt_select = $conn->prepare("SELECT * FROM `message` WHERE name = ? AND email = ? AND number = ? AND message = ?");
+      $stmt_select->bind_param("ssss", $name, $email, $number, $msg);
+      $stmt_select->execute();
+      $select_message = $stmt_select->get_result();
+
+      if ($select_message->num_rows > 0) {
+         $message[] = 'Message has already been sent!';
+      } else {
+         $stmt_insert = $conn->prepare("INSERT INTO `message` (user_id, name, email, number, message) VALUES (?, ?, ?, ?, ?)");
+         $stmt_insert->bind_param("issss", $user_id, $name, $email, $number, $msg);
+         $stmt_insert->execute();
+         $stmt_insert->close();
+         $message[] = 'Message sent successfully!';
+      }
+      $stmt_select->close();
    }
-   $stmt_select->close();
+}
+
+// Ensure $message is always an array before rendering
+if (!isset($message) || !is_array($message)) {
+    $message = [];
 }
 ?>
 
@@ -106,12 +152,12 @@ if (isset($_POST['send'])) {
 <?php include 'header.php'; ?>
 
 <!-- Success/Error Messages -->
-<?php if (isset($message)): ?>
+<?php if (isset($message) && is_array($message) && !empty($message)): ?>
    <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 space-y-2">
       <?php foreach ($message as $msg): ?>
          <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-slide-up">
             <i class="fas fa-check-circle"></i>
-            <span><?php echo $msg; ?></span>
+            <span><?php echo htmlspecialchars($msg); ?></span>
             <button onclick="this.parentElement.remove()" class="ml-4 text-white hover:text-green-200">
                <i class="fas fa-times"></i>
             </button>
