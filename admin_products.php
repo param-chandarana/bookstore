@@ -18,55 +18,111 @@ if(isset($_POST['add_product'])){
    $description = $_POST['description'];
    $price = $_POST['price'];
    $stock_quantity = $_POST['stock_quantity'];
-   $image = $_FILES['image']['name'];
+
+   // Secure file upload validation
+   $image_name = $_FILES['image']['name'];
    $image_size = $_FILES['image']['size'];
    $image_tmp_name = $_FILES['image']['tmp_name'];
-   $image_folder = 'uploaded_img/'.$image;
+   $image_error = $_FILES['image']['error'];
 
-   $stmt_select = $conn->prepare("SELECT name FROM `products` WHERE name = ?");
-   $stmt_select->bind_param("s", $name);
-   $stmt_select->execute();
-   $select_product_name = $stmt_select->get_result();
+   // Check for upload errors
+   if ($image_error !== UPLOAD_ERR_OK) {
+      $message[] = 'File upload error occurred!';
+   } else {
+      // Validate file size (2MB limit)
+      if ($image_size > 2000000) {
+         $message[] = 'Image size must be less than 2MB!';
+      } else {
+         // Get file extension and MIME type
+         $file_ext = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
+         $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+         $finfo = finfo_open(FILEINFO_MIME_TYPE);
+         $mime_type = finfo_file($finfo, $image_tmp_name);
+         finfo_close($finfo);
+         $allowed_mimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-   if($select_product_name->num_rows > 0){
-      $message[] = 'product name already added';
-   }else{
-      $stmt_insert = $conn->prepare("INSERT INTO `products`(name, author, category, description, price, stock_quantity, image) VALUES(?, ?, ?, ?, ?, ?, ?)");
-      $stmt_insert->bind_param("ssssiis", $name, $author, $category, $description, $price, $stock_quantity, $image);
-      $stmt_insert->execute();
-      $add_product_query = $stmt_insert->affected_rows > 0;
-      $stmt_insert->close();
+         // Validate file extension and MIME type
+         if (!in_array($file_ext, $allowed_extensions)) {
+            $message[] = 'Only JPG, JPEG, PNG, GIF, and WebP files are allowed!';
+         } elseif (!in_array($mime_type, $allowed_mimes)) {
+            $message[] = 'Invalid image file type!';
+         } else {
+            // Generate secure filename to prevent directory traversal and conflicts
+            $image_extension = $file_ext;
+            $secure_filename = uniqid('product_', true) . '.' . $image_extension;
+            $image_folder = 'uploaded_img/' . $secure_filename;
 
-      if($add_product_query){
-         if($image_size > 2000000){
-            $message[] = 'image size is too large';
-         }else{
-            move_uploaded_file($image_tmp_name, $image_folder);
-            $message[] = 'Product added successfully!';
+            // Check if product name already exists
+            $stmt_select = $conn->prepare("SELECT name FROM `products` WHERE name = ?");
+            $stmt_select->bind_param("s", $name);
+            $stmt_select->execute();
+            $select_product_name = $stmt_select->get_result();
+
+            if($select_product_name->num_rows > 0){
+               $message[] = 'Product name already exists!';
+            } else {
+               // Insert product with secure filename
+               $stmt_insert = $conn->prepare("INSERT INTO `products`(name, author, category, description, price, stock_quantity, image) VALUES(?, ?, ?, ?, ?, ?, ?)");
+               $stmt_insert->bind_param("ssssiis", $name, $author, $category, $description, $price, $stock_quantity, $secure_filename);
+               $stmt_insert->execute();
+               $add_product_query = $stmt_insert->affected_rows > 0;
+               $stmt_insert->close();
+
+               if($add_product_query){
+                  // Create upload directory if it doesn't exist
+                  if (!is_dir('uploaded_img')) {
+                     mkdir('uploaded_img', 0755, true);
+                  }
+                  
+                  // Move uploaded file with secure filename
+                  if (move_uploaded_file($image_tmp_name, $image_folder)) {
+                     $message[] = 'Product added successfully!';
+                  } else {
+                     $message[] = 'Failed to upload image!';
+                     // Remove the database entry if file upload fails
+                     $stmt_delete = $conn->prepare("DELETE FROM `products` WHERE name = ?");
+                     $stmt_delete->bind_param("s", $name);
+                     $stmt_delete->execute();
+                     $stmt_delete->close();
+                  }
+               } else {
+                  $message[] = 'Failed to add product to database!';
+               }
+            }
+            $stmt_select->close();
          }
-      }else{
-         $message[] = 'product could not be added!';
       }
    }
-   $stmt_select->close();
 }
 
 if(isset($_GET['delete'])){
    $delete_id = intval($_GET['delete']);
+   
+   // First get the image filename before deleting the record
    $stmt_img = $conn->prepare("SELECT image FROM `products` WHERE id = ?");
    $stmt_img->bind_param("i", $delete_id);
    $stmt_img->execute();
    $delete_image_query = $stmt_img->get_result();
    $fetch_delete_image = $delete_image_query->fetch_assoc();
-   if ($fetch_delete_image) {
-      unlink('uploaded_img/'.$fetch_delete_image['image']);
-   }
    $stmt_img->close();
+   
+   // Delete the record from database
    $stmt_del = $conn->prepare("DELETE FROM `products` WHERE id = ?");
    $stmt_del->bind_param("i", $delete_id);
-   $stmt_del->execute();
+   $delete_success = $stmt_del->execute();
    $stmt_del->close();
+   
+   // Only delete the image file if database deletion was successful
+   if ($delete_success && $fetch_delete_image && !empty($fetch_delete_image['image'])) {
+      $image_path = 'uploaded_img/' . $fetch_delete_image['image'];
+      // Validate the file path to prevent directory traversal
+      if (strpos($fetch_delete_image['image'], '..') === false && file_exists($image_path)) {
+         unlink($image_path);
+      }
+   }
+   
    header('location:admin_products.php');
+   exit();
 }
 
 if(isset($_POST['update_product'])){
@@ -87,16 +143,55 @@ if(isset($_POST['update_product'])){
    $update_image = $_FILES['update_image']['name'];
    $update_image_tmp_name = $_FILES['update_image']['tmp_name'];
    $update_image_size = $_FILES['update_image']['size'];
-   $update_folder = 'uploaded_img/'.$update_image;
+   $update_image_error = $_FILES['update_image']['error'];
    $update_old_image = $_POST['update_old_image'];
 
    if(!empty($update_image)){
-      if($update_image_size > 2000000){
-         $message[] = 'image file size is too large';
-      }else{
-         mysqli_query($conn, "UPDATE `products` SET image = '$update_image' WHERE id = '$update_p_id'") or die('query failed');
-         move_uploaded_file($update_image_tmp_name, $update_folder);
-         unlink('uploaded_img/'.$update_old_image);
+      // Check for upload errors
+      if ($update_image_error !== UPLOAD_ERR_OK) {
+         $message[] = 'File upload error occurred!';
+      } else {
+         // Validate file size (2MB limit)
+         if($update_image_size > 2000000){
+            $message[] = 'Image file size must be less than 2MB!';
+         } else {
+            // Get file extension and MIME type
+            $file_ext = strtolower(pathinfo($update_image, PATHINFO_EXTENSION));
+            $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime_type = finfo_file($finfo, $update_image_tmp_name);
+            finfo_close($finfo);
+            $allowed_mimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+            // Validate file extension and MIME type
+            if (!in_array($file_ext, $allowed_extensions)) {
+               $message[] = 'Only JPG, JPEG, PNG, GIF, and WebP files are allowed!';
+            } elseif (!in_array($mime_type, $allowed_mimes)) {
+               $message[] = 'Invalid image file type!';
+            } else {
+               // Generate secure filename
+               $image_extension = $file_ext;
+               $secure_filename = uniqid('product_', true) . '.' . $image_extension;
+               $update_folder = 'uploaded_img/' . $secure_filename;
+
+               // Update database with secure filename
+               $stmt_update_img = $conn->prepare("UPDATE `products` SET image = ? WHERE id = ?");
+               $stmt_update_img->bind_param("si", $secure_filename, $update_p_id);
+               $stmt_update_img->execute();
+               $stmt_update_img->close();
+
+               // Move new file and delete old file
+               if (move_uploaded_file($update_image_tmp_name, $update_folder)) {
+                  // Safely delete old image if it exists
+                  if (!empty($update_old_image) && file_exists('uploaded_img/'.$update_old_image)) {
+                     unlink('uploaded_img/'.$update_old_image);
+                  }
+                  $message[] = 'Product image updated successfully!';
+               } else {
+                  $message[] = 'Failed to upload new image!';
+               }
+            }
+         }
       }
    }
 
