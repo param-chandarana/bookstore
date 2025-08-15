@@ -47,6 +47,7 @@ A comprehensive, modern online bookstore web application with an elegant user in
 - **Language**: PHP 8+ with modern practices
 - **Database**: MySQL with prepared statements for security
 - **Session Management**: Secure PHP sessions with proper validation
+- **Configuration**: Environment-based configuration with `.env` file support
 - **File Handling**: Image upload and management system
 - **Security**: SQL injection prevention, XSS protection, CSRF mitigation
 
@@ -83,6 +84,7 @@ A comprehensive, modern online bookstore web application with an elegant user in
 - **Input Sanitization**: HTML escaping and data validation
 - **Access Control**: Role-based permissions for admin functions
 - **File Upload Security**: Secure image handling with validation
+- **Environment Variables**: Secure configuration management with sensitive data isolation
 
 ## 📦 Installation & Setup
 
@@ -91,6 +93,7 @@ A comprehensive, modern online bookstore web application with an elegant user in
 - MySQL 5.7 or higher
 - Apache/Nginx web server
 - Modern web browser with JavaScript enabled
+- Environment file configured (`.env`)
 
 ### **Setup Instructions**
 
@@ -100,19 +103,21 @@ A comprehensive, modern online bookstore web application with an elegant user in
    cd bookstore
    ```
 
-2. **Database Setup**
+2. **Environment Configuration**
+   ```# Copy the example environment file
+   cp .env.example .env
+
+   # Edit .env with your database credentials
+   nano .env
+   ```
+
+3. **Database Setup**
    ```sql
    -- Create database
    CREATE DATABASE bookstore;
    
    -- Import the schema
    mysql -u username -p bookstore < shop_db.sql
-   ```
-
-3. **Configuration**
-   ```php
-   // Update config.php with your database credentials
-   $conn = mysqli_connect('localhost', 'username', 'password', 'bookstore');
    ```
 
 4. **Web Server Setup**
