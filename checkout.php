@@ -1,12 +1,17 @@
 <?php
 include 'config.php';
+include 'error_handling.php';
 session_start();
 
 $user_id = $_SESSION['user_id'];
 
 if (!isset($user_id)) {
    header('location:login.php');
+   exit;
 }
+
+// Initialize message array
+$message = [];
 
 if (isset($_POST['order_btn'])) {
    $name = $_POST['name'];

@@ -1,6 +1,7 @@
 <?php
 include 'config.php';
 include 'input_sanitization.php';
+include 'error_handling.php';
 session_start();
 
 $user_id = $_SESSION['user_id'];
@@ -9,6 +10,9 @@ if (!isset($user_id)) {
    header('location:login.php');
    exit;
 }
+
+// Initialize message array
+$message = [];
 
 if (isset($_POST['send'])) {
    // Define validation rules
@@ -37,8 +41,13 @@ if (isset($_POST['send'])) {
    $validation_result = validateInputs($_POST, $validation_rules);
    
    if (!$validation_result['valid']) {
-      foreach ($validation_result['errors'] as $error) {
-         $message[] = $error;
+      // Ensure errors is an array before foreach
+      if (isset($validation_result['errors']) && is_array($validation_result['errors'])) {
+         foreach ($validation_result['errors'] as $error) {
+            $message[] = $error;
+         }
+      } else {
+         $message[] = 'Validation failed. Please check your input.';
       }
    } else {
       $name = $validation_result['data']['name'];
@@ -62,6 +71,11 @@ if (isset($_POST['send'])) {
       }
       $stmt_select->close();
    }
+}
+
+// Ensure $message is always an array before rendering
+if (!isset($message) || !is_array($message)) {
+    $message = [];
 }
 ?>
 
@@ -138,12 +152,12 @@ if (isset($_POST['send'])) {
 <?php include 'header.php'; ?>
 
 <!-- Success/Error Messages -->
-<?php if (isset($message)): ?>
+<?php if (isset($message) && is_array($message) && !empty($message)): ?>
    <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 space-y-2">
       <?php foreach ($message as $msg): ?>
          <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-slide-up">
             <i class="fas fa-check-circle"></i>
-            <span><?php echo $msg; ?></span>
+            <span><?php echo htmlspecialchars($msg); ?></span>
             <button onclick="this.parentElement.remove()" class="ml-4 text-white hover:text-green-200">
                <i class="fas fa-times"></i>
             </button>

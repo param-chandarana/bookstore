@@ -41,18 +41,31 @@ if (empty($db_password) && !$is_development) {
 }
 
 // Create database connection
-$conn = mysqli_connect($db_host, $db_user, $db_password, $db_name);
-
-// Check connection with secure error handling
-if (!$conn) {
-    error_log('Database connection failed: ' . mysqli_connect_error());
-    die('Database connection failed. Please try again later.');
+try {
+    $conn = mysqli_connect($db_host, $db_user, $db_password, $db_name);
+    
+    // Check connection with secure error handling
+    if (!$conn) {
+        throw new Exception('Database connection failed: ' . mysqli_connect_error());
+    }
+    
+    // Set charset to prevent character set confusion attacks
+    mysqli_set_charset($conn, 'utf8mb4');
+    
+    // Enable MySQLi exceptions for better error handling
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    
+} catch (Exception $e) {
+    // Log the database connection error
+    error_log('Database connection failed: ' . $e->getMessage());
+    
+    // Show user-friendly error message
+    $is_production = ($_ENV['ENVIRONMENT'] ?? 'development') === 'production';
+    if ($is_production) {
+        die('Service temporarily unavailable. Please try again later.');
+    } else {
+        die('Database connection failed: ' . $e->getMessage());
+    }
 }
-
-// Set charset to prevent character set confusion attacks
-mysqli_set_charset($conn, 'utf8mb4');
-
-// Enable MySQLi exceptions for better error handling
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 ?>

@@ -2,6 +2,7 @@
 
 include 'config.php';
 include 'input_sanitization.php';
+include 'error_handling.php';
 
 session_start();
 
