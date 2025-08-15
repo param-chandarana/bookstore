@@ -504,9 +504,12 @@ if(isset($_POST['update_product'])){
 <?php
    if(isset($_GET['update'])){
       $update_id = intval($_GET['update']);
-      $update_query = mysqli_query($conn, "SELECT * FROM `products` WHERE id = '$update_id'") or die('query failed');
-      if(mysqli_num_rows($update_query) > 0){
-         $fetch_update = mysqli_fetch_assoc($update_query);
+      $stmt_update_query = $conn->prepare("SELECT * FROM `products` WHERE id = ?");
+      $stmt_update_query->bind_param("i", $update_id);
+      $stmt_update_query->execute();
+      $update_query = $stmt_update_query->get_result();
+      if($update_query->num_rows > 0){
+         $fetch_update = $update_query->fetch_assoc();
 ?>
 
 <!-- Modal Overlay -->
@@ -647,6 +650,7 @@ if(isset($_POST['update_product'])){
 
 <?php
       }
+      $stmt_update_query->close();
    }
 ?>
 
