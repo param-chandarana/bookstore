@@ -17,21 +17,51 @@ if (isset($_POST['add_to_cart'])) {
    $product_image = $_POST['product_image'];
    $product_quantity = (int) $_POST['product_quantity'];
 
-   $stmt_check = $conn->prepare("SELECT * FROM `cart` WHERE name = ? AND user_id = ?");
-   $stmt_check->bind_param("si", $product_name, $user_id);
-   $stmt_check->execute();
-   $check_cart_numbers = $stmt_check->get_result();
+   // Check available stock for the product
+   $stmt_stock = $conn->prepare("SELECT stock_quantity FROM `products` WHERE name = ? LIMIT 1");
+   $stmt_stock->bind_param("s", $product_name);
+   $stmt_stock->execute();
+   $stock_result = $stmt_stock->get_result();
+   $product = $stock_result->fetch_assoc();
+   $stmt_stock->close();
 
-   if ($check_cart_numbers->num_rows > 0) {
-      $message[] = 'Already added to cart!';
+   if (!$product) {
+      $message[] = 'Product not found!';
+   } elseif ($product_quantity > (int)$product['stock_quantity']) {
+      $message[] = 'Only ' . $product['stock_quantity'] . ' units available in stock!';
+   } elseif ($product_quantity < 1) {
+      $message[] = 'Please select at least 1 quantity!';
    } else {
-      $stmt_insert = $conn->prepare("INSERT INTO `cart`(user_id, name, price, quantity, image) VALUES(?, ?, ?, ?, ?)");
-      $stmt_insert->bind_param("isdis", $user_id, $product_name, $product_price, $product_quantity, $product_image);
-      $stmt_insert->execute();
-      $stmt_insert->close();
-      $message[] = 'Product added to cart!';
+      // Check if product already in cart
+      $stmt_check = $conn->prepare("SELECT quantity FROM `cart` WHERE name = ? AND user_id = ?");
+      $stmt_check->bind_param("si", $product_name, $user_id);
+      $stmt_check->execute();
+      $cart_result = $stmt_check->get_result();
+      $cart_item = $cart_result->fetch_assoc();
+      $stmt_check->close();
+
+      if ($cart_item) {
+         // Product exists - check if adding more would exceed stock
+         $new_quantity = $cart_item['quantity'] + $product_quantity;
+         if ($new_quantity > (int)$product['stock_quantity']) {
+            $message[] = 'Cannot add more. Only ' . $product['stock_quantity'] . ' units available (you already have ' . $cart_item['quantity'] . ' in cart)!';
+         } else {
+            // Update quantity
+            $stmt_update = $conn->prepare("UPDATE `cart` SET quantity = ? WHERE name = ? AND user_id = ?");
+            $stmt_update->bind_param("isi", $new_quantity, $product_name, $user_id);
+            $stmt_update->execute();
+            $stmt_update->close();
+            $message[] = 'Cart updated! Now you have ' . $new_quantity . ' units.';
+         }
+      } else {
+         // New item - add to cart
+         $stmt_insert = $conn->prepare("INSERT INTO `cart`(user_id, name, price, quantity, image) VALUES(?, ?, ?, ?, ?)");
+         $stmt_insert->bind_param("isdis", $user_id, $product_name, $product_price, $product_quantity, $product_image);
+         $stmt_insert->execute();
+         $stmt_insert->close();
+         $message[] = 'Product added to cart!';
+      }
    }
-   $stmt_check->close();
 }
 
 ?>
