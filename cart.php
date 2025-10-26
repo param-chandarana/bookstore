@@ -9,15 +9,55 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
+// Initialize message array
+$message = [];
+
 // Update cart item quantity
 if (isset($_POST['update_cart'])) {
    $cart_id = intval($_POST['cart_id']);
    $cart_quantity = max(1, intval($_POST['cart_quantity'])); // Minimum 1
 
-   $stmt = $conn->prepare("UPDATE cart SET quantity = ? WHERE id = ? AND user_id = ?");
-   $stmt->bind_param("iii", $cart_quantity, $cart_id, $user_id);
-   $stmt->execute();
-   $stmt->close();
+   // First get the product name from cart to check stock
+   $stmt_cart = $conn->prepare("SELECT name FROM cart WHERE id = ? AND user_id = ?");
+   $stmt_cart->bind_param("ii", $cart_id, $user_id);
+   $stmt_cart->execute();
+   $cart_result = $stmt_cart->get_result();
+   
+   if ($cart_result->num_rows > 0) {
+      $cart_item = $cart_result->fetch_assoc();
+      $product_name = $cart_item['name'];
+      
+      // Check available stock for this product
+      $stmt_stock = $conn->prepare("SELECT stock_quantity FROM products WHERE name = ? LIMIT 1");
+      $stmt_stock->bind_param("s", $product_name);
+      $stmt_stock->execute();
+      $stock_result = $stmt_stock->get_result();
+      
+      if ($stock_result->num_rows > 0) {
+         $product = $stock_result->fetch_assoc();
+         $available_stock = (int)$product['stock_quantity'];
+         
+         if ($cart_quantity > $available_stock) {
+            $message[] = "Only {$available_stock} items available in stock for this product!";
+            // Set quantity to maximum available
+            $cart_quantity = max(1, $available_stock);
+         }
+         
+         // Update cart with validated quantity
+         $stmt_update = $conn->prepare("UPDATE cart SET quantity = ? WHERE id = ? AND user_id = ?");
+         $stmt_update->bind_param("iii", $cart_quantity, $cart_id, $user_id);
+         $stmt_update->execute();
+         $stmt_update->close();
+         
+         if (empty($message)) {
+            $message[] = "Cart updated successfully!";
+         }
+      } else {
+         $message[] = "Product not found!";
+      }
+      $stmt_stock->close();
+   }
+   $stmt_cart->close();
 }
 
 // Delete a single cart item
@@ -118,6 +158,21 @@ if (isset($_GET['delete_all'])) {
 
 <?php include 'header.php'; ?>
 
+<!-- Success/Error Messages -->
+<?php if (isset($message) && is_array($message) && !empty($message)): ?>
+   <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 space-y-2">
+      <?php foreach ($message as $msg): ?>
+         <div class="bg-white border-l-4 border-primary-500 text-sage-800 px-6 py-4 rounded-r-lg shadow-lg flex items-center gap-3 animate-slide-up min-w-[300px]">
+            <i class="fas fa-info-circle text-primary-500 text-xl"></i>
+            <span class="flex-1"><?php echo htmlspecialchars($msg); ?></span>
+            <button onclick="this.parentElement.remove()" class="ml-4 text-sage-400 hover:text-sage-600 transition-colors">
+               <i class="fas fa-times"></i>
+            </button>
+         </div>
+      <?php endforeach; ?>
+   </div>
+<?php endif; ?>
+
    <!-- Hero Section -->
    <section class="relative bg-gradient-primary text-white py-20 overflow-hidden">
       <!-- Background Elements -->
@@ -169,8 +224,23 @@ if (isset($_GET['delete_all'])) {
                         while ($fetch_cart = $result->fetch_assoc()) {
                            $sub_total = $fetch_cart['quantity'] * $fetch_cart['price'];
                            $grand_total += $sub_total;
+                           
+                           // Get current stock for this product
+                           $stmt_stock = $conn->prepare("SELECT stock_quantity FROM products WHERE name = ? LIMIT 1");
+                           $stmt_stock->bind_param("s", $fetch_cart['name']);
+                           $stmt_stock->execute();
+                           $stock_result = $stmt_stock->get_result();
+                           $current_stock = 0;
+                           if ($stock_result->num_rows > 0) {
+                              $stock_data = $stock_result->fetch_assoc();
+                              $current_stock = (int)$stock_data['stock_quantity'];
+                           }
+                           $stmt_stock->close();
+                           
+                           // Check if cart quantity exceeds available stock
+                           $is_out_of_stock = ($current_stock < $fetch_cart['quantity']);
                         ?>
-                           <div class="bg-cream-50 rounded-xl p-6 hover:shadow-md transition-all duration-300 border border-cream-200 group">
+                           <div class="bg-cream-50 rounded-xl p-6 hover:shadow-md transition-all duration-300 border border-cream-200 group <?php echo $is_out_of_stock ? 'border-accent-300 bg-accent-50' : ''; ?>">
                               <div class="flex flex-col md:flex-row gap-6">
                                  <!-- Product Image -->
                                  <div class="md:w-1/4">
@@ -178,6 +248,11 @@ if (isset($_GET['delete_all'])) {
                                        <img src="uploaded_img/<?php echo htmlspecialchars($fetch_cart['image']); ?>" 
                                             alt="<?php echo htmlspecialchars($fetch_cart['name']); ?>"
                                             class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                                       <?php if ($is_out_of_stock): ?>
+                                          <div class="absolute top-2 right-2 bg-accent-500 text-white text-xs font-bold px-2 py-1 rounded">
+                                             STOCK ISSUE
+                                          </div>
+                                       <?php endif; ?>
                                     </div>
                                  </div>
                                  
@@ -187,9 +262,20 @@ if (isset($_GET['delete_all'])) {
                                        <h3 class="text-xl font-semibold text-sage-900 mb-2 group-hover:text-primary-600 transition-colors">
                                           <?php echo htmlspecialchars($fetch_cart['name']); ?>
                                        </h3>
-                                       <p class="text-2xl font-bold text-primary-600 mb-4">
+                                       <p class="text-2xl font-bold text-primary-600 mb-2">
                                           ₹<?php echo number_format($fetch_cart['price'], 2); ?>
                                        </p>
+                                       <?php if ($is_out_of_stock): ?>
+                                          <div class="inline-flex items-center gap-2 bg-accent-100 text-accent-700 px-3 py-1 rounded-lg text-sm font-medium mb-2">
+                                             <i class="fas fa-exclamation-triangle"></i>
+                                             <span>Only <?php echo $current_stock; ?> available in stock!</span>
+                                          </div>
+                                       <?php else: ?>
+                                          <div class="inline-flex items-center gap-2 text-sage-600 text-sm mb-2">
+                                             <i class="fas fa-box"></i>
+                                             <span><?php echo $current_stock; ?> in stock</span>
+                                          </div>
+                                       <?php endif; ?>
                                     </div>
                                     
                                     <!-- Quantity and Actions -->
