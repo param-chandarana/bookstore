@@ -187,7 +187,7 @@ if ($is_admin) {
          ?>
          <div class="<?php echo $bgColor; ?> text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-slide-up">
             <i class="fas <?php echo $icon; ?>"></i>
-            <span><?php echo $msg; ?></span>
+            <span><?php echo htmlspecialchars($msg, ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></span>
             <button onclick="this.parentElement.remove()" class="ml-4 text-white hover:text-opacity-80">
                <i class="fas fa-times"></i>
             </button>
