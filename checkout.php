@@ -23,7 +23,9 @@ if (isset($_POST['order_btn'])) {
 
    $cart_total = 0;
    $cart_products = [];
+   $cart_items = [];
 
+   // Load cart items for the user
    $stmt_cart = $conn->prepare("SELECT * FROM `cart` WHERE user_id = ?");
    $stmt_cart->bind_param("i", $user_id);
    $stmt_cart->execute();
@@ -33,31 +35,101 @@ if (isset($_POST['order_btn'])) {
          $cart_products[] = $cart_item['name'] . ' (' . $cart_item['quantity'] . ') ';
          $sub_total = ($cart_item['price'] * $cart_item['quantity']);
          $cart_total += $sub_total;
+         // preserve items for stock checks (name-based lookup)
+         $cart_items[] = [
+            'name' => $cart_item['name'],
+            'quantity' => (int)$cart_item['quantity']
+         ];
       }
    }
 
    $total_products = implode(', ', $cart_products);
 
-   $stmt_order = $conn->prepare("SELECT * FROM `orders` WHERE name = ? AND number = ? AND email = ? AND method = ? AND address = ? AND total_products = ? AND total_price = ?");
-   $stmt_order->bind_param("ssssssi", $name, $number, $email, $method, $address, $total_products, $cart_total);
-   $stmt_order->execute();
-   $order_query = $stmt_order->get_result();
-
+   // Basic cart empty check
    if ($cart_total == 0) {
       $message[] = 'Your cart is empty.';
    } else {
-      if ($order_query->num_rows > 0) {
-         $message[] = 'Order already placed!';
-      } else {
-         $stmt_insert = $conn->prepare("INSERT INTO `orders` (user_id, name, number, email, method, address, total_products, total_price, placed_on) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-         $stmt_insert->bind_param("issssssss", $user_id, $name, $number, $email, $method, $address, $total_products, $cart_total, $placed_on);
-         $stmt_insert->execute();
-         $stmt_insert->close();
-         $message[] = 'Order placed successfully!';
-         $stmt_delete = $conn->prepare("DELETE FROM `cart` WHERE user_id = ?");
-         $stmt_delete->bind_param("i", $user_id);
-         $stmt_delete->execute();
-         $stmt_delete->close();
+   // Start transaction to ensure stock integrity
+   mysqli_begin_transaction($conn);
+   $transaction_started = true;
+      try {
+         // Check stock for each cart item (products identified by name)
+         foreach ($cart_items as $item) {
+            $stmt_stock = $conn->prepare("SELECT stock_quantity FROM `products` WHERE name = ? LIMIT 1");
+            $stmt_stock->bind_param("s", $item['name']);
+            $stmt_stock->execute();
+            $res = $stmt_stock->get_result();
+            $product = $res->fetch_assoc();
+            $stmt_stock->close();
+
+            if (!$product) {
+               // Product no longer exists
+               mysqli_rollback($conn);
+               $message[] = 'Product "' . htmlspecialchars($item['name']) . '" is no longer available.';
+               throw new Exception('Product not found: ' . $item['name']);
+            }
+
+            if ($item['quantity'] > (int)$product['stock_quantity']) {
+               mysqli_rollback($conn);
+               $message[] = 'Not enough stock for "' . htmlspecialchars($item['name']) . '". Available: ' . $product['stock_quantity'];
+               throw new Exception('Insufficient stock for: ' . $item['name']);
+            }
+         }
+
+         // Prevent duplicate identical orders
+         $stmt_order = $conn->prepare("SELECT * FROM `orders` WHERE name = ? AND number = ? AND email = ? AND method = ? AND address = ? AND total_products = ? AND total_price = ?");
+         $stmt_order->bind_param("ssssssi", $name, $number, $email, $method, $address, $total_products, $cart_total);
+         $stmt_order->execute();
+         $order_query = $stmt_order->get_result();
+
+         if ($order_query->num_rows > 0) {
+            mysqli_rollback($conn);
+            $message[] = 'Order already placed!';
+         } else {
+            // Insert order
+            $stmt_insert = $conn->prepare("INSERT INTO `orders` (user_id, name, number, email, method, address, total_products, total_price, placed_on) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt_insert->bind_param("issssssss", $user_id, $name, $number, $email, $method, $address, $total_products, $cart_total, $placed_on);
+            $stmt_insert->execute();
+            $stmt_insert->close();
+
+            // Decrement stock for each product
+            foreach ($cart_items as $item) {
+               $stmt_update = $conn->prepare("UPDATE `products` SET stock_quantity = stock_quantity - ? WHERE name = ? AND stock_quantity >= ?");
+               $qty = $item['quantity'];
+               $stmt_update->bind_param("iss", $qty, $item['name'], $qty);
+               $stmt_update->execute();
+
+               if ($stmt_update->affected_rows === 0) {
+                  // Failed to decrement (race condition)
+                  mysqli_rollback($conn);
+                  $message[] = 'Failed to update stock for "' . htmlspecialchars($item['name']) . '". Please try again.';
+                  $stmt_update->close();
+                  throw new Exception('Failed to decrement stock for: ' . $item['name']);
+               }
+               $stmt_update->close();
+            }
+
+            // Clear cart
+            $stmt_delete = $conn->prepare("DELETE FROM `cart` WHERE user_id = ?");
+            $stmt_delete->bind_param("i", $user_id);
+            $stmt_delete->execute();
+            $stmt_delete->close();
+
+            mysqli_commit($conn);
+            $transaction_started = false;
+            $message[] = 'Order placed successfully!';
+         }
+      } catch (Exception $e) {
+         // If not already rolled back, ensure rollback
+         if (mysqli_connect_errno() || mysqli_errno($conn)) {
+            // do nothing - errors handled above
+         }
+         if (isset($transaction_started) && $transaction_started) {
+            mysqli_rollback($conn);
+            $transaction_started = false;
+         }
+         // Log the exception for debugging
+         logError('order_process', $e->getMessage(), ['user_id' => $user_id]);
       }
    }
 }
