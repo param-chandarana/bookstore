@@ -118,7 +118,7 @@ if(isset($message)){
    </div>
 
    <!-- Mobile Navigation -->
-   <div id="mobile-nav" class="lg:hidden bg-primary-700 border-t border-primary-600 transform -translate-y-full transition-transform duration-300">
+   <div id="mobile-nav" class="lg:hidden bg-primary-700 border-t border-primary-600 hidden transition-all duration-300">
       <div class="container mx-auto px-4 py-4 space-y-2">
          <a href="admin_page.php" class="flex items-center px-4 py-3 text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-all">
             <i class="fas fa-tachometer-alt mr-3"></i>
@@ -156,15 +156,22 @@ if(isset($message)){
    document.getElementById('mobile-menu-btn').addEventListener('click', function() {
       const mobileNav = document.getElementById('mobile-nav');
       const overlay = document.getElementById('mobile-menu-overlay');
+      const icon = this.querySelector('i');
       
-      if (mobileNav.style.transform === 'translateY(0px)' || mobileNav.style.transform === '') {
-         mobileNav.style.transform = 'translateY(-100%)';
-         overlay.classList.remove('opacity-100', 'pointer-events-auto');
-         overlay.classList.add('opacity-0', 'pointer-events-none');
-      } else {
-         mobileNav.style.transform = 'translateY(0px)';
+      if (mobileNav.classList.contains('hidden')) {
+         // Open menu
+         mobileNav.classList.remove('hidden');
          overlay.classList.remove('opacity-0', 'pointer-events-none');
          overlay.classList.add('opacity-100', 'pointer-events-auto');
+         icon.classList.remove('fa-bars');
+         icon.classList.add('fa-times');
+      } else {
+         // Close menu
+         mobileNav.classList.add('hidden');
+         overlay.classList.remove('opacity-100', 'pointer-events-auto');
+         overlay.classList.add('opacity-0', 'pointer-events-none');
+         icon.classList.remove('fa-times');
+         icon.classList.add('fa-bars');
       }
    });
 
@@ -196,10 +203,13 @@ if(isset($message)){
    document.getElementById('mobile-menu-overlay').addEventListener('click', function() {
       const mobileNav = document.getElementById('mobile-nav');
       const overlay = document.getElementById('mobile-menu-overlay');
+      const icon = document.getElementById('mobile-menu-btn').querySelector('i');
       
-      mobileNav.style.transform = 'translateY(-100%)';
+      mobileNav.classList.add('hidden');
       overlay.classList.remove('opacity-100', 'pointer-events-auto');
       overlay.classList.add('opacity-0', 'pointer-events-none');
+      icon.classList.remove('fa-times');
+      icon.classList.add('fa-bars');
    });
 
    // Highlight active page
