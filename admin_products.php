@@ -476,12 +476,12 @@ if(isset($_POST['update_product'])){
             <div class="bg-cream-50 rounded-xl border border-sage-100 overflow-hidden hover:shadow-lg transition-all duration-300 group">
                <!-- Product Image -->
                <div class="relative overflow-hidden bg-gradient-to-br from-cream-50 to-sage-50 aspect-[3/4]">
-                  <img src="uploaded_img/<?php echo $fetch_products['image']; ?>" 
-                       alt="<?php echo $fetch_products['name']; ?>"
+                  <img src="uploaded_img/<?php echo htmlspecialchars($fetch_products['image'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>" 
+                       alt="<?php echo htmlspecialchars($fetch_products['name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>"
                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                   <div class="absolute top-3 right-3">
                      <span class="bg-primary-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                        ID: <?php echo $fetch_products['id']; ?>
+                        ID: <?php echo htmlspecialchars($fetch_products['id'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>
                      </span>
                   </div>
                </div>
@@ -489,22 +489,22 @@ if(isset($_POST['update_product'])){
                <!-- Product Info -->
                <div class="p-6">
                   <h3 class="font-semibold text-sage-800 mb-1 line-clamp-2">
-                     <?php echo $fetch_products['name']; ?>
+                     <?php echo htmlspecialchars($fetch_products['name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>
                   </h3>
                   <p class="text-sage-600 text-sm mb-2">
-                     by <?php echo $fetch_products['author']; ?>
+                     by <?php echo htmlspecialchars($fetch_products['author'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>
                   </p>
                   <div class="mb-3">
                      <span class="inline-block bg-sage-100 text-sage-700 px-2 py-1 rounded-full text-xs font-medium">
-                        <?php echo $fetch_products['category']; ?>
+                        <?php echo htmlspecialchars($fetch_products['category'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>
                      </span>
                   </div>
                   <div class="flex items-center justify-between mb-3">
                      <div class="text-2xl font-bold text-primary-600">
-                        ₹<?php echo number_format($fetch_products['price']); ?>
+                        ₹<?php echo htmlspecialchars(number_format($fetch_products['price']), ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>
                      </div>
                      <div class="text-sm text-sage-600">
-                        Stock: <?php echo $fetch_products['stock_quantity']; ?>
+                        Stock: <?php echo htmlspecialchars($fetch_products['stock_quantity'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>
                      </div>
                   </div>
 
@@ -583,13 +583,13 @@ if(isset($_POST['update_product'])){
       <!-- Modal Content -->
       <div class="p-6">
          <form action="" method="post" enctype="multipart/form-data" class="space-y-6">
-            <input type="hidden" name="update_p_id" value="<?php echo $fetch_update['id']; ?>">
-            <input type="hidden" name="update_old_image" value="<?php echo $fetch_update['image']; ?>">
+            <input type="hidden" name="update_p_id" value="<?php echo htmlspecialchars($fetch_update['id'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>">
+            <input type="hidden" name="update_old_image" value="<?php echo htmlspecialchars($fetch_update['image'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>">
 
             <!-- Current Product Image -->
             <div class="text-center">
                <div class="inline-block relative">
-                  <img src="uploaded_img/<?php echo $fetch_update['image']; ?>" 
+                  <img src="uploaded_img/<?php echo htmlspecialchars($fetch_update['image'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>" 
                        alt="Current product image"
                        class="w-48 h-48 object-cover rounded-xl border border-sage-200 shadow-lg">
                   <div class="absolute top-2 right-2 bg-primary-500 text-white px-2 py-1 rounded-full text-xs">
@@ -605,7 +605,7 @@ if(isset($_POST['update_product'])){
                      Product Name *
                   </label>
                   <input type="text" name="update_name" required
-                         value="<?php echo $fetch_update['name']; ?>"
+                         value="<?php echo htmlspecialchars($fetch_update['name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>"
                          placeholder="Enter product name"
                          class="w-full px-4 py-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                </div>
@@ -616,7 +616,7 @@ if(isset($_POST['update_product'])){
                      Author Name *
                   </label>
                   <input type="text" name="update_author" required
-                         value="<?php echo $fetch_update['author']; ?>"
+                         value="<?php echo htmlspecialchars($fetch_update['author'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>"
                          placeholder="Enter author name"
                          class="w-full px-4 py-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                </div>
@@ -629,10 +629,10 @@ if(isset($_POST['update_product'])){
                   <select name="update_category" required
                           class="w-full px-4 py-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                      <option value="">Select Category</option>
-                     <option value="Fiction" <?php echo ($fetch_update['category'] == 'Fiction') ? 'selected' : ''; ?>>Fiction</option>
-                     <option value="Non-Fiction" <?php echo ($fetch_update['category'] == 'Non-Fiction') ? 'selected' : ''; ?>>Non-Fiction</option>
-                     <option value="Poetry" <?php echo ($fetch_update['category'] == 'Poetry') ? 'selected' : ''; ?>>Poetry</option>
-                     <option value="Biography" <?php echo ($fetch_update['category'] == 'Biography') ? 'selected' : ''; ?>>Biography</option>
+                     <option value="Fiction" <?php echo (htmlspecialchars($fetch_update['category'], ENT_QUOTES | ENT_HTML5, 'UTF-8') == 'Fiction') ? 'selected' : ''; ?>>Fiction</option>
+                     <option value="Non-Fiction" <?php echo (htmlspecialchars($fetch_update['category'], ENT_QUOTES | ENT_HTML5, 'UTF-8') == 'Non-Fiction') ? 'selected' : ''; ?>>Non-Fiction</option>
+                     <option value="Poetry" <?php echo (htmlspecialchars($fetch_update['category'], ENT_QUOTES | ENT_HTML5, 'UTF-8') == 'Poetry') ? 'selected' : ''; ?>>Poetry</option>
+                     <option value="Biography" <?php echo (htmlspecialchars($fetch_update['category'], ENT_QUOTES | ENT_HTML5, 'UTF-8') == 'Biography') ? 'selected' : ''; ?>>Biography</option>
                   </select>
                </div>
 
@@ -642,7 +642,7 @@ if(isset($_POST['update_product'])){
                      Product Price (₹) *
                   </label>
                   <input type="number" name="update_price" min="0" required
-                         value="<?php echo $fetch_update['price']; ?>"
+                         value="<?php echo htmlspecialchars($fetch_update['price'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>"
                          placeholder="Enter product price"
                          class="w-full px-4 py-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                </div>
@@ -653,7 +653,7 @@ if(isset($_POST['update_product'])){
                      Stock Quantity *
                   </label>
                   <input type="number" name="update_stock_quantity" min="0" required
-                         value="<?php echo $fetch_update['stock_quantity']; ?>"
+                         value="<?php echo htmlspecialchars($fetch_update['stock_quantity'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>"
                          placeholder="Enter stock quantity"
                          class="w-full px-4 py-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                </div>
@@ -661,12 +661,12 @@ if(isset($_POST['update_product'])){
 
             <!-- Description (Full Width) -->
             <div>
-               <label class="block text-sm font-medium text-sage-700 mb-2">
+                  <label class="block text-sm font-medium text-sage-700 mb-2">
                   Product Description *
                </label>
                <textarea name="update_description" required rows="4"
                          placeholder="Enter product description"
-                         class="w-full px-4 py-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"><?php echo $fetch_update['description']; ?></textarea>
+                         class="w-full px-4 py-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"><?php echo htmlspecialchars($fetch_update['description'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></textarea>
             </div>
 
             <!-- New Product Image -->
