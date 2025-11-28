@@ -203,8 +203,8 @@ if (isset($_POST['add_to_cart'])) {
                   <form action="" method="post" class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-sage-100 hover:border-primary-200 hover:-translate-y-1">
                      <!-- Product Image -->
                      <div class="relative overflow-hidden bg-gradient-to-br from-cream-50 to-sage-50 aspect-[3/4]">
-                        <img src="uploaded_img/<?php echo $fetch_product['image']; ?>" 
-                             alt="<?php echo $fetch_product['name']; ?>"
+                        <img src="uploaded_img/<?php echo htmlspecialchars($fetch_product['image'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>" 
+                             alt="<?php echo htmlspecialchars($fetch_product['name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>"
                              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                         
                         <!-- Overlay -->
@@ -214,7 +214,7 @@ if (isset($_POST['add_to_cart'])) {
                      <!-- Product Info -->
                      <div class="p-6">
                         <h3 class="font-serif font-bold text-lg text-sage-800 mb-2 group-hover:text-primary-600 transition-colors leading-tight">
-                           <?php echo $fetch_product['name']; ?>
+                           <?php echo htmlspecialchars($fetch_product['name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>
                         </h3>
                         
                         <!-- Author -->
@@ -239,7 +239,7 @@ if (isset($_POST['add_to_cart'])) {
                         
                         <!-- Price -->
                         <div class="flex items-center justify-between mb-4">
-                           <span class="text-2xl font-bold text-primary-600">₹<?php echo $fetch_product['price']; ?></span>
+                           <span class="text-2xl font-bold text-primary-600">₹<?php echo htmlspecialchars($fetch_product['price'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></span>
                         </div>
                         
                         <!-- Quantity & Add to Cart -->
@@ -264,9 +264,9 @@ if (isset($_POST['add_to_cart'])) {
                      </div>
                      
                      <!-- Hidden inputs -->
-                     <input type="hidden" name="product_name" value="<?php echo $fetch_product['name']; ?>">
-                     <input type="hidden" name="product_price" value="<?php echo $fetch_product['price']; ?>">
-                     <input type="hidden" name="product_image" value="<?php echo $fetch_product['image']; ?>">
+                     <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($fetch_product['name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>">
+                     <input type="hidden" name="product_price" value="<?php echo htmlspecialchars($fetch_product['price'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>">
+                     <input type="hidden" name="product_image" value="<?php echo htmlspecialchars($fetch_product['image'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>">
                   </form>
                <?php endwhile; ?>
             <?php else: ?>
